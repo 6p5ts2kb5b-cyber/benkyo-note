@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>1年生ふくしゅう</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-column "math notebook" — grid paper ground, one question card at a time, keypad or answer choices under the thumb */
+:root{
+  --paper:#eef3f6; --grid:#d5e1e8; --sheet:#fbfdfe; --ink:#1f3350; --sub:#5d6f82;
+  --line:#c9d6df; --accent:#2f6fa8; --accent-ink:#ffffff; --ok:#2e7d5b; --ng:#b4473f; --key:#e4ecf2;
+  --f-num:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:20px 28px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:18px}
+.units{display:flex;flex-direction:column;gap:10px}
+.unit{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;
+  font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer}
+.unit:hover{border-color:var(--accent)}
+.unit:focus-visible,.key:focus-visible,.btn:focus-visible,.choice:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.unit b{font-size:1.05rem;display:block}
+.unit small{color:var(--sub);font-size:.85rem}
+.unit .ex{font-family:var(--f-num);color:var(--sub);white-space:nowrap}
+.group{font-size:.8rem;letter-spacing:.08em;color:var(--sub);margin:6px 0 -2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.95rem;color:var(--sub)}
+.link{background:none;border:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:4px}
+.bar{height:6px;background:var(--key);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.ask{text-align:center;color:var(--sub);margin:0;font-size:1rem}
+.q{font-family:var(--f-num);font-weight:600;font-size:clamp(2.2rem,11vw,3rem);text-align:center;
+  font-variant-numeric:tabular-nums;padding-block:14px 6px;display:flex;justify-content:center;align-items:baseline;gap:.3em;flex-wrap:wrap}
+.q.sent{font-size:clamp(1.5rem,7vw,1.9rem);gap:.25em;line-height:1.8}
+.q .w{font-family:var(--f-ui);font-weight:500;font-size:.8em}
+.box{min-width:1.8em;border-bottom:3px solid var(--ink);padding:0 .15em;text-align:center}
+.box.ok{color:var(--ok);border-color:var(--ok)}
+.box.ng{color:var(--ng);border-color:var(--ng);text-decoration:line-through}
+.vis{display:flex;justify-content:center;padding-top:8px}
+.vis svg{width:190px;max-width:100%;height:auto}
+.fb{min-height:2.2em;text-align:center;font-size:1.05rem;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.ng{color:var(--ng)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{font-family:var(--f-num);font-size:1.6rem;font-weight:600;padding:12px 0;border:none;border-radius:10px;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.key:active{filter:brightness(.93)}
+.key.sm{font-family:var(--f-ui);font-size:1rem}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{font-family:var(--f-num);font-weight:600;font-size:1.4rem;padding:16px 6px;border-radius:10px;border:2px solid transparent;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.choice.ok{border-color:var(--ok);color:var(--ok)}
+.choice.ng{border-color:var(--ng);color:var(--ng);text-decoration:line-through}
+.choice:disabled{cursor:default}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;padding:14px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.done h2{font-size:1.6rem;margin:0 0 6px;text-align:center;text-wrap:balance}
+.done .msg{text-align:center;margin:0;color:var(--sub);line-height:1.7}
+.score{font-family:var(--f-num);font-size:2.4rem;text-align:center;font-weight:600;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-family:var(--f-num);font-size:1.1rem}
+.review li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.review li span:first-child{min-width:0}
+.review .your{color:var(--ng);font-size:.95rem;white-space:nowrap}
+.row{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.home-link{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:0 24px;font-size:.9rem}
+.home-link a{color:var(--sub)}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<p class="home-link"><a href="./">もくじに もどる</a></p>
+
+<script>
+const TOTAL = 10;
+const r = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=r(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* 問題の形
+   keypad: {parts:[...,"?",...], ans, sent?, ask?}  "?" が答えのます
+   choice: {ask, vis?, choices:[...], ans, text}                      */
+const K = (parts,ans,o={})=>({kind:"k",parts,ans,...o});
+
+/* ---- とけい ---- */
+function clockSVG(h,m){
+  const cx=100,cy=100;
+  let nums="";
+  for(let i=1;i<=12;i++){const a=(i*30-90)*Math.PI/180;
+    nums+=`<text x="${cx+74*Math.cos(a)}" y="${cy+74*Math.sin(a)}" text-anchor="middle" dominant-baseline="central" style="fill:var(--ink);font-family:var(--f-num);font-size:17px;font-weight:600">${i}</text>`}
+  let ticks="";
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,long=i%5===0,r1=long?84:88;
+    ticks+=`<line x1="${cx+r1*Math.sin(a)}" y1="${cy-r1*Math.cos(a)}" x2="${cx+92*Math.sin(a)}" y2="${cy-92*Math.cos(a)}" style="stroke:var(--sub);stroke-width:${long?2:1}"/>`}
+  const ha=((h%12)+m/60)*30*Math.PI/180, ma=m*6*Math.PI/180;
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="とけい">
+    <circle cx="100" cy="100" r="96" style="fill:var(--sheet);stroke:var(--ink);stroke-width:3"/>
+    ${ticks}${nums}
+    <line x1="100" y1="100" x2="${cx+46*Math.sin(ha)}" y2="${cy-46*Math.cos(ha)}" style="stroke:var(--ink);stroke-width:7;stroke-linecap:round"/>
+    <line x1="100" y1="100" x2="${cx+70*Math.sin(ma)}" y2="${cy-70*Math.cos(ma)}" style="stroke:var(--accent);stroke-width:4;stroke-linecap:round"/>
+    <circle cx="100" cy="100" r="5" style="fill:var(--ink)"/></svg>`;
+}
+const FUN = {5:"5ふん",10:"10ぷん",15:"15ふん",20:"20ぷん",25:"25ふん",30:"30ぷん",35:"35ふん",40:"40ぷん",45:"45ふん",50:"50ぷん",55:"55ふん"};
+const hr = h=>((h-1+12)%12)+1;
+function timeLabel(h,m){h=hr(h);return m===0?`${h}じ`:m===30?`${h}じはん`:`${h}じ${FUN[m]}`}
+function clockQ(){
+  const k=r(0,2), h=r(1,12), m = k===0?0 : k===1?30 : pick([5,10,15,20,25,35,40,45,50,55]);
+  const ans=timeLabel(h,m);
+  const opts=new Set([ans, timeLabel(h+1,m), timeLabel(h-1,m)]);
+  // みじかいはり と ながいはり の とりちがえ
+  if(m%5===0 && m>0){const sw=m/5; if(sw>=1&&sw<=12) opts.add(timeLabel(sw,(h%12)*5))}
+  const extra=[0,30,15,45].map(mm=>timeLabel(h,mm));
+  for(const e of extra){if(opts.size>=4)break;opts.add(e)}
+  return {kind:"c",ask:"なんじ なんぷん ですか。",vis:clockSVG(h,m),choices:shuffle([...opts].slice(0,4)),ans,text:`とけい → ${ans}`};
+}
+
+/* ---- 大きいかず ---- */
+function bigQ(){
+  const t=r(0,4);
+  if(t===0){const a=r(1,9),b=r(0,9);return K(["10が",a,"こと","1が",b,"こで","?"],a*10+b,{sent:true})}
+  if(t===1){const n=r(11,99),a=Math.floor(n/10);return K([n,"は","10が","?","こと","1が",n%10,"こ"],a,{sent:true})}
+  if(t===2){const step=pick([1,1,2,5,10]);let s=r(1,Math.floor((100-step*3)/step))*step;if(step===1)s=r(20,96);
+    const seq=[s,s+step,s+2*step,s+3*step],hole=r(1,3);const ans=seq[hole];seq[hole]="?";
+    return K(seq,ans,{sent:true,ask:`${step}ずつ ふえて います。`})}
+  if(t===3){const n=r(20,90),d=pick([1,2,3,10]),up=Math.random()<.5;
+    return up?K([n,"より",d,"おおきい","かずは","?"],n+d,{sent:true}):K([n,"より",d,"ちいさい","かずは","?"],n-d,{sent:true})}
+  const a=r(1,9);return K(["十のくらいが",a,"、一のくらいが",0,"の","かずは","?"],a*10,{sent:true});
+}
+
+/* ---- くらべ ---- */
+function cmpQ(){
+  let a,b;
+  const t=r(0,2);
+  if(t===0){const x=r(1,9),y=r(1,9);if(x===y)return cmpQ();a=x*10+y;b=y*10+x}      // 68 と 86
+  else if(t===1){a=r(20,99);b=a+pick([-1,1,-10,10]);if(b<10||b>100)return cmpQ()}
+  else {a=r(10,99);b=r(10,99);if(a===b)return cmpQ()}
+  const big=Math.random()<.6, ans=big?Math.max(a,b):Math.min(a,b);
+  return {kind:"c",ask:big?"おおきい ほうは どちら？":"ちいさい ほうは どちら？",choices:[String(a),String(b)],ans:String(ans),text:`${a} と ${b}（${big?"おおきい":"ちいさい"}）→ ${ans}`};
+}
+
+const UNITS = [
+  {group:"けいさん"},
+  {id:"ikutsu", title:"いくつと いくつ", note:"10を つくる など", ex:"7と□で10",
+   gen(){const t=Math.random()<.6?10:r(5,9),a=r(1,t-1);return Math.random()<.5?K([a,"と","?","で",t],t-a,{sent:true}):K([t,"は",a,"と","?"],t-a,{sent:true})}},
+  {id:"add1", title:"たしざん", note:"くりあがり なし", ex:"13 + 4",
+   gen(){const k=r(0,2);if(k===0){const a=r(1,9),b=r(1,10-a);return K([a,"+",b,"=","?"],a+b)}
+     if(k===1){const b=r(1,9);return Math.random()<.5?K([10,"+",b,"=","?"],10+b):K([b,"+",10,"=","?"],10+b)}
+     const o=r(1,8),b=r(1,9-o);return K([10+o,"+",b,"=","?"],10+o+b)}},
+  {id:"sub1", title:"ひきざん", note:"くりさがり なし", ex:"17 − 3",
+   gen(){const k=r(0,2);if(k===0){const a=r(2,10),b=r(1,a);return K([a,"−",b,"=","?"],a-b)}
+     if(k===1){const o=r(1,9);return Math.random()<.5?K([10+o,"−",o,"=","?"],10):K([10+o,"−",10,"=","?"],o)}
+     const o=r(2,9),b=r(1,o-1);return K([10+o,"−",b,"=","?"],10+o-b)}},
+  {id:"add2", title:"くりあがりの ある たしざん", note:"", ex:"8 + 5",
+   gen(){let a,b;do{a=r(2,9);b=r(2,9)}while(a+b<11);return K([a,"+",b,"=","?"],a+b)}},
+  {id:"sub2", title:"くりさがりの ある ひきざん", note:"", ex:"13 − 7",
+   gen(){let a,b;do{a=r(11,18);b=r(2,9)}while(a%10>=b);return K([a,"−",b,"=","?"],a-b)}},
+  {id:"three", title:"3つの かずの けいさん", note:"", ex:"5 + 3 − 4",
+   gen(){for(;;){const a=r(1,10),b=r(1,9),c=r(1,9),o1=pick(["+","−"]),o2=pick(["+","−"]);
+     const x=o1==="+"?a+b:a-b; if(x<0||x>20)continue; const y=o2==="+"?x+c:x-c; if(y<0||y>20)continue;
+     if(o1==="+"&&o2==="+"&&y>10)continue;
+     return K([a,o1,b,o2,c,"=","?"],y)}}},
+  {group:"けいさん いがい"},
+  {id:"big", title:"大きい かず", note:"100までの かず・かずの ならび", ex:"10が3こと1が5こ",
+   gen:bigQ},
+  {id:"cmp", title:"どちらが おおきい", note:"かずの おおきさ くらべ", ex:"68 と 86",
+   gen:cmpQ},
+  {id:"clock", title:"とけい", note:"なんじ・なんじはん・なんぷん", ex:"3じはん",
+   gen:clockQ},
+];
+
+let s = {};
+const app = document.getElementById("app");
+
+function home(){
+  s = {};
+  app.innerHTML = `
+    <h1>1年生ふくしゅう</h1>
+    <p class="lead">やりたい たんげんを えらんでね。1回 ${TOTAL}もんです。</p>
+    <div class="units">${UNITS.map(u=>u.group
+      ? `<div class="group">${u.group}</div>`
+      : `<button class="unit" data-id="${u.id}"><span><b>${u.title}</b>${u.note?`<small>${u.note}</small>`:""}</span><span class="ex">${u.ex}</span></button>`).join("")}
+    </div>`;
+  app.querySelectorAll(".unit").forEach(b=>b.onclick=()=>start(b.dataset.id));
+}
+
+function start(id){
+  const u=UNITS.find(x=>x.id===id);
+  const qs=[],seen=new Set();let guard=0;
+  while(qs.length<TOTAL&&guard++<800){const q=u.gen();const k=JSON.stringify(q.parts||q.text);if(!seen.has(k)){seen.add(k);qs.push(q)}}
+  s={u,qs,i:0,input:"",ok:0,miss:[],locked:false};
+  draw();
+}
+
+const partHTML = p => p==="?" ? `<span class="box" id="box">&nbsp;</span>`
+  : typeof p==="number" ? `<span>${p}</span>`
+  : /^[+−=]$/.test(p) ? `<span>${p}</span>` : `<span class="w">${p}</span>`;
+
+function draw(){
+  const q=s.qs[s.i];
+  const head = `
+    <div class="top"><button class="link" id="quit">やめる</button><span>${s.u.title}</span><span>${s.i+1} / ${TOTAL}</span></div>
+    <div class="bar"><i style="width:${s.i/TOTAL*100}%"></i></div>`;
+  if(q.kind==="k"){
+    app.innerHTML = head + `
+      <div class="sheet">
+        ${q.ask?`<p class="ask">${q.ask}</p>`:""}
+        <div class="q ${q.sent?"sent":""}">${q.parts.map(partHTML).join("")}</div>
+        <div class="fb" id="fb"></div>
+      </div>
+      <div class="pad">
+        ${[7,8,9,4,5,6,1,2,3].map(n=>`<button class="key" data-k="${n}">${n}</button>`).join("")}
+        <button class="key sm" data-k="del">けす</button>
+        <button class="key" data-k="0">0</button>
+        <button class="key sm" data-k="clr">ぜんぶけす</button>
+      </div>
+      <button class="btn" id="go" disabled>こたえる</button>`;
+    app.querySelectorAll(".key").forEach(b=>b.onclick=()=>press(b.dataset.k));
+    document.getElementById("go").onclick=submit;
+  } else {
+    app.innerHTML = head + `
+      <div class="sheet">
+        <p class="ask">${q.ask}</p>
+        ${q.vis?`<div class="vis">${q.vis}</div>`:""}
+        <div class="fb" id="fb"></div>
+      </div>
+      <div class="choices">${q.choices.map(c=>`<button class="choice" data-c="${c}">${c}</button>`).join("")}</div>
+      <button class="btn" id="go" disabled>つぎへ</button>`;
+    app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>choose(b));
+    document.getElementById("go").onclick=()=>{ if(s.locked) next() };
+  }
+  document.getElementById("quit").onclick=home;
+}
+
+function press(k){
+  if(s.locked||!s.qs||s.qs[s.i].kind!=="k") return;
+  if(k==="del") s.input=s.input.slice(0,-1);
+  else if(k==="clr") s.input="";
+  else if(s.input.length<3) s.input=(s.input+k).replace(/^0+(?=\d)/,"");
+  document.getElementById("box").innerHTML=s.input||"&nbsp;";
+  document.getElementById("go").disabled=!s.input;
+}
+
+function submit(){
+  if(s.locked){ next(); return; }
+  if(!s.input) return;
+  const q=s.qs[s.i], val=parseInt(s.input,10);
+  const box=document.getElementById("box"), fb=document.getElementById("fb"), go=document.getElementById("go");
+  s.locked=true;
+  if(val===q.ans){ s.ok++; box.classList.add("ok"); fb.className="fb ok"; fb.textContent="せいかい"; }
+  else {
+    s.miss.push({text:q.parts.map(p=>p==="?"?`［${q.ans}］`:p).join(" "), your:String(val)});
+    box.classList.add("ng"); fb.className="fb ng"; fb.textContent=`こたえは ${q.ans}`;
+  }
+  go.textContent = s.i+1<TOTAL?"つぎへ":"おわり";
+}
+
+function choose(btn){
+  if(s.locked) return;
+  const q=s.qs[s.i], c=btn.dataset.c, fb=document.getElementById("fb");
+  s.locked=true;
+  app.querySelectorAll(".choice").forEach(b=>{b.disabled=true; if(b.dataset.c===q.ans) b.classList.add("ok")});
+  if(c===q.ans){ s.ok++; fb.className="fb ok"; fb.textContent="せいかい"; }
+  else { btn.classList.add("ng"); s.miss.push({text:q.text, your:c}); fb.className="fb ng"; fb.textContent=`こたえは ${q.ans}`; }
+  const go=document.getElementById("go"); go.disabled=false; go.textContent=s.i+1<TOTAL?"つぎへ":"おわり"; go.focus();
+}
+
+function next(){
+  s.i++; s.input=""; s.locked=false;
+  s.i<TOTAL ? draw() : done();
+}
+
+function done(){
+  const ok=s.ok;
+  const msg = ok===TOTAL ? "ぜんもん せいかい！さいごまで ていねいに できたね。"
+    : ok>=7 ? "よく できました。まちがえた もんだいを もういちど 見てみよう。"
+    : "さいごまで あきらめずに できたね。つづけると もっと できるように なるよ。";
+  app.innerHTML = `
+    <div class="sheet done">
+      <h2>がんばったね！</h2>
+      <p class="msg">${msg}</p>
+      <p class="score">${ok}<small> / ${TOTAL} もん</small></p>
+    </div>
+    ${s.miss.length?`<div class="sheet">
+      <div class="group" style="margin:0 0 10px">見なおし</div>
+      <ul class="review">${s.miss.map(m=>`<li><span>${m.text}</span><span class="your">（${m.your}）</span></li>`).join("")}</ul>
+    </div>`:""}
+    <div class="row">
+      <button class="btn" id="again">もういちど やる</button>
+      <button class="btn ghost" id="back">ほかの たんげんを えらぶ</button>
+    </div>`;
+  const id=s.u.id;
+  document.getElementById("again").onclick=()=>start(id);
+  document.getElementById("back").onclick=home;
+}
+
+document.addEventListener("keydown",e=>{
+  if(!s.qs) return;
+  if(/^[0-9]$/.test(e.key)) press(e.key);
+  else if(e.key==="Backspace") press("del");
+  else if(e.key==="Enter"){e.preventDefault(); if(s.qs[s.i]&&s.qs[s.i].kind==="k") submit(); else if(s.locked) next();}
+});
+
+home();
+</script>
+
+</body>
+</html>

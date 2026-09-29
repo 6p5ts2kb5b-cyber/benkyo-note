@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>2年のけいさんノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-column "math notebook" — grid paper ground, one card at a time, big keypad under the thumb */
+:root{
+  --paper:#eef3f6; --grid:#d5e1e8; --sheet:#fbfdfe; --ink:#1f3350; --sub:#5d6f82;
+  --line:#c9d6df; --accent:#2f6fa8; --accent-ink:#ffffff; --ok:#2e7d5b; --ng:#b4473f; --key:#e4ecf2;
+  --f-num:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:20px 28px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:18px}
+.units{display:flex;flex-direction:column;gap:10px}
+.unit{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;
+  font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer}
+.unit:hover{border-color:var(--accent)}
+.unit:focus-visible,.key:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.unit b{font-size:1.05rem;display:block}
+.unit small{color:var(--sub);font-family:var(--f-num);font-size:.95rem}
+.unit .ex{font-family:var(--f-num);color:var(--sub);white-space:nowrap}
+.group{font-size:.8rem;letter-spacing:.08em;color:var(--sub);margin:6px 0 -2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.95rem;color:var(--sub)}
+.link{background:none;border:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:4px}
+.bar{height:6px;background:var(--key);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.q{font-family:var(--f-num);font-weight:600;font-size:clamp(2.2rem,11vw,3rem);text-align:center;
+  font-variant-numeric:tabular-nums;padding-block:18px 6px;display:flex;justify-content:center;align-items:baseline;gap:.3em;flex-wrap:wrap}
+.box{min-width:2.4em;border-bottom:3px solid var(--ink);padding:0 .15em;text-align:center}
+.box.ok{color:var(--ok);border-color:var(--ok)}
+.box.ng{color:var(--ng);border-color:var(--ng);text-decoration:line-through}
+.fb{min-height:2.2em;text-align:center;font-size:1.05rem;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.ng{color:var(--ng)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{font-family:var(--f-num);font-size:1.6rem;font-weight:600;padding:12px 0;border:none;border-radius:10px;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.key:active{filter:brightness(.93)}
+.key.sm{font-family:var(--f-ui);font-size:1rem}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;padding:14px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.done h2{font-size:1.6rem;margin:0 0 6px;text-align:center;text-wrap:balance}
+.done .msg{text-align:center;margin:0;color:var(--sub);line-height:1.7}
+.score{font-family:var(--f-num);font-size:2.4rem;text-align:center;font-weight:600;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-family:var(--f-num);font-size:1.15rem}
+.review li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.review .your{color:var(--ng);font-size:.95rem}
+.row{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.home-link{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:0 24px;font-size:.9rem}
+.home-link a{color:var(--sub)}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<p class="home-link"><a href="./">もくじに もどる</a></p>
+
+<script>
+const TOTAL = 10;
+const r = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+
+const UNITS = [
+  {group:"たし算・ひき算"},
+  {id:"add2", title:"2けたのたし算", note:"くり上がりあり", ex:"38 + 47",
+   gen(){let a,b;do{a=r(11,89);b=r(11,99-a)}while((a%10)+(b%10)<10||a+b>99);return [a,"+",b,a+b]}},
+  {id:"sub2", title:"2けたのひき算", note:"くり下がりあり", ex:"62 − 27",
+   gen(){let a,b;do{a=r(21,98);b=r(11,a-1)}while((a%10)>=(b%10));return [a,"−",b,a-b]}},
+  {id:"add3", title:"100をこえるたし算", note:"答えが3けた", ex:"76 + 58",
+   gen(){const a=r(40,99),b=r(101-a,99);return [a,"+",b,a+b]}},
+  {id:"sub3", title:"100からのひき算", note:"3けた − 2けた", ex:"143 − 67",
+   gen(){const a=r(100,198),b=r(a-99,99);return [a,"−",b,a-b]}},
+  {id:"tens", title:"何十・何百の計算", note:"あんざんで", ex:"70 + 50",
+   gen(){const k=r(0,3);
+     if(k===0){const a=r(2,9)*10,b=r(2,9)*10;return [a,"+",b,a+b]}
+     if(k===1){const a=r(11,18)*10,b=r(2,9)*10;return b<a?[a,"−",b,a-b]:[a,"−",30,a-30]}
+     if(k===2){const a=r(1,8)*100,b=r(1,9-a/100)*100;return [a,"+",b,a+b]}
+     const a=r(2,10)*100,b=r(1,a/100-1)*100;return [a,"−",b,a-b]}},
+  {group:"かけ算（九九）"},
+  {id:"k25", title:"2・3・4・5のだん", note:"", ex:"4 × 7",
+   gen(){const a=r(2,5),b=r(1,9);return [a,"×",b,a*b]}},
+  {id:"k69", title:"6・7・8・9のだん", note:"", ex:"8 × 6",
+   gen(){const a=r(6,9),b=r(1,9);return [a,"×",b,a*b]}},
+  {id:"kall", title:"九九 ぜんぶ", note:"1〜9のだん", ex:"7 × 9",
+   gen(){const a=r(1,9),b=r(1,9);return [a,"×",b,a*b]}},
+];
+
+let s = {};
+const app = document.getElementById("app");
+
+function home(){
+  s = {};
+  app.innerHTML = `
+    <h1>2年の けいさんノート</h1>
+    <p class="lead">やりたい もんだいを えらんでね。1回 ${TOTAL}もんです。</p>
+    <div class="units">${UNITS.map(u=>u.group
+      ? `<div class="group">${u.group}</div>`
+      : `<button class="unit" data-id="${u.id}"><span><b>${u.title}</b>${u.note?`<small>${u.note}</small>`:""}</span><span class="ex">${u.ex}</span></button>`).join("")}
+    </div>`;
+  app.querySelectorAll(".unit").forEach(b=>b.onclick=()=>start(b.dataset.id));
+}
+
+function start(id){
+  const u = UNITS.find(x=>x.id===id);
+  const qs=[], seen=new Set();
+  let guard=0;
+  while(qs.length<TOTAL && guard++<500){const q=u.gen();const k=q.slice(0,3).join();if(!seen.has(k)){seen.add(k);qs.push(q)}}
+  s = {u, qs, i:0, input:"", ok:0, miss:[], locked:false};
+  draw();
+}
+
+function draw(){
+  const q = s.qs[s.i];
+  app.innerHTML = `
+    <div class="top"><button class="link" id="quit">やめる</button><span>${s.u.title}</span><span>${s.i+1} / ${TOTAL}</span></div>
+    <div class="bar"><i style="width:${s.i/TOTAL*100}%"></i></div>
+    <div class="sheet">
+      <div class="q"><span>${q[0]}</span><span>${q[1]}</span><span>${q[2]}</span><span>=</span><span class="box" id="box">${s.input||"&nbsp;"}</span></div>
+      <div class="fb" id="fb"></div>
+    </div>
+    <div class="pad">
+      ${[7,8,9,4,5,6,1,2,3].map(n=>`<button class="key" data-k="${n}">${n}</button>`).join("")}
+      <button class="key sm" data-k="del">けす</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key sm" data-k="clr">ぜんぶけす</button>
+    </div>
+    <button class="btn" id="go" ${s.input?"":"disabled"}>こたえる</button>`;
+  app.querySelectorAll(".key").forEach(b=>b.onclick=()=>press(b.dataset.k));
+  document.getElementById("go").onclick=submit;
+  document.getElementById("quit").onclick=home;
+}
+
+function press(k){
+  if(s.locked) return;
+  if(k==="del") s.input=s.input.slice(0,-1);
+  else if(k==="clr") s.input="";
+  else if(s.input.length<4) s.input=(s.input+k).replace(/^0+(?=\d)/,"");
+  document.getElementById("box").innerHTML=s.input||"&nbsp;";
+  document.getElementById("go").disabled=!s.input;
+}
+
+function submit(){
+  if(!s.input) return;
+  if(s.locked){ next(); return; }
+  const q=s.qs[s.i], ans=q[3], val=parseInt(s.input,10);
+  const box=document.getElementById("box"), fb=document.getElementById("fb"), go=document.getElementById("go");
+  s.locked=true;
+  if(val===ans){
+    s.ok++; box.classList.add("ok"); fb.className="fb ok"; fb.textContent="せいかい";
+    go.textContent = s.i+1<TOTAL?"つぎへ":"おわり";
+  } else {
+    s.miss.push({q, your:val});
+    box.classList.add("ng"); fb.className="fb ng"; fb.textContent=`こたえは ${ans}`;
+    go.textContent = s.i+1<TOTAL?"つぎへ":"おわり";
+  }
+}
+
+function next(){
+  s.i++; s.input=""; s.locked=false;
+  s.i<TOTAL ? draw() : done();
+}
+
+function done(){
+  const ok=s.ok;
+  const msg = ok===TOTAL ? "ぜんもん せいかい！さいごまで ていねいに とけたね。"
+    : ok>=7 ? "よく できました。まちがえた もんだいを もういちど 見てみよう。"
+    : "さいごまで あきらめずに とけたね。つづけると もっと できるように なるよ。";
+  app.innerHTML = `
+    <div class="sheet done">
+      <h2>がんばったね！</h2>
+      <p class="msg">${msg}</p>
+      <p class="score">${ok}<small> / ${TOTAL} もん</small></p>
+    </div>
+    ${s.miss.length?`<div class="sheet">
+      <div class="group" style="margin:0 0 10px">見なおし</div>
+      <ul class="review">${s.miss.map(m=>`<li><span>${m.q[0]} ${m.q[1]} ${m.q[2]} = ${m.q[3]}</span><span class="your">（${m.your}）</span></li>`).join("")}</ul>
+    </div>`:""}
+    <div class="row">
+      <button class="btn" id="again">もういちど やる</button>
+      <button class="btn ghost" id="back">ほかの もんだいを えらぶ</button>
+    </div>`;
+  const id=s.u.id;
+  document.getElementById("again").onclick=()=>start(id);
+  document.getElementById("back").onclick=home;
+}
+
+document.addEventListener("keydown",e=>{
+  if(!s.qs) return;
+  if(/^[0-9]$/.test(e.key)) press(e.key);
+  else if(e.key==="Backspace") press("del");
+  else if(e.key==="Enter"){e.preventDefault();submit()}
+});
+
+home();
+</script>
+
+</body>
+</html>

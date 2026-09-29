@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>漢字ノート1・2年</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-column "kanji notebook" — grid paper ground, a sentence card with the target word marked, 4 answer choices under the thumb */
+:root{
+  --paper:#eef3f6; --grid:#d5e1e8; --sheet:#fbfdfe; --ink:#1f3350; --sub:#5d6f82;
+  --line:#c9d6df; --accent:#2f6fa8; --accent-ink:#ffffff; --ok:#2e7d5b; --ng:#b4473f; --key:#e4ecf2; --mark:#f3e7b6;
+  --f-kanji:"Klee One","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --mark:#4a4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --mark:#4a4320; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:20px 28px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem;line-height:1.6}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:18px}
+.units{display:flex;flex-direction:column;gap:10px}
+.group{font-size:.8rem;letter-spacing:.08em;color:var(--sub);margin:8px 0 -2px}
+.unit{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px 16px}
+.unit .name{flex:1;min-width:0}
+.unit b{display:block;font-size:1.05rem}
+.unit small{display:block;color:var(--sub);font-family:var(--f-kanji);font-size:.95rem;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mode{font:inherit;font-weight:700;font-size:.95rem;padding:10px 12px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap}
+.mode:hover{background:var(--key)}
+.mode:focus-visible,.btn:focus-visible,.choice:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.95rem;color:var(--sub)}
+.link{background:none;border:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:4px}
+.bar{height:6px;background:var(--key);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.ask{text-align:center;color:var(--sub);margin:0 0 6px;font-size:.95rem}
+.sent{font-family:var(--f-kanji);font-size:clamp(1.5rem,7vw,1.9rem);text-align:center;line-height:1.9;padding-block:10px;text-wrap:balance}
+.tg{font-weight:600;font-size:1.35em;border-bottom:3px solid var(--ink);padding:0 .1em;margin:0 .1em;background:linear-gradient(transparent 62%,var(--mark) 62%)}
+.fb{min-height:2.2em;text-align:center;font-size:1.05rem;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.ng{color:var(--ng)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{font-family:var(--f-kanji);font-weight:600;font-size:1.35rem;padding:16px 6px;border-radius:10px;border:2px solid transparent;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation;min-width:0;overflow-wrap:anywhere}
+.choice.big{font-size:1.9rem;padding:12px 6px}
+.choice.ok{border-color:var(--ok);color:var(--ok)}
+.choice.ng{border-color:var(--ng);color:var(--ng);text-decoration:line-through}
+.choice:disabled{cursor:default}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;padding:14px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.done h2{font-size:1.6rem;margin:0 0 6px;text-align:center;text-wrap:balance}
+.done .msg{text-align:center;margin:0;color:var(--sub);line-height:1.7}
+.score{font-family:var(--f-kanji);font-size:2.4rem;text-align:center;font-weight:600;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-family:var(--f-kanji);font-size:1.15rem}
+.review li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:8px}
+.review li span:first-child{min-width:0}
+.review ruby rt{font-size:.6em;color:var(--sub)}
+.review .your{color:var(--ng);font-size:.95rem;white-space:nowrap}
+.row{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.home-link{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:0 24px;font-size:.9rem}
+.home-link a{color:var(--sub)}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<p class="home-link"><a href="./">もくじに もどる</a></p>
+
+<script>
+const TOTAL = 10;
+
+/* 漢字|ことば|よみ|ぶん（＿ に ことばが 入る） */
+const G1 = `
+一|一つ|ひとつ|りんごが ＿ あります
+右|右|みぎ|かどを ＿に まがる
+雨|雨|あめ|＿が ふる
+円|百円|ひゃくえん|＿の おかし
+王|王さま|おうさま|＿の おしろ
+音|音|おと|たいこの ＿
+下|下|した|つくえの ＿
+火|火|ひ|＿を けす
+花|花|はな|＿が さく
+貝|貝|かい|うみで ＿を ひろう
+学|学校|がっこう|＿に いく
+気|気もち|きもち|うれしい ＿
+九|九つ|ここのつ|みかんが ＿
+休|休む|やすむ|がっこうを ＿
+玉|玉入れ|たまいれ|うんどうかいの ＿
+金|お金|おかね|＿を はらう
+空|空|そら|あおい ＿
+月|月|つき|まるい ＿
+犬|犬|いぬ|＿が ほえる
+見|見る|みる|えを ＿
+五|五人|ごにん|こどもが ＿
+口|口|くち|＿を あける
+校|校てい|こうてい|＿で あそぶ
+左|左手|ひだりて|＿を あげる
+三|三本|さんぼん|えんぴつが ＿
+山|山|やま|＿に のぼる
+子|子ども|こども|＿が あそぶ
+四|四月|しがつ|もうすぐ ＿
+糸|糸|いと|はりと ＿
+字|字|じ|きれいな ＿を かく
+耳|耳|みみ|うさぎの ながい ＿
+七|七つ|ななつ|ほしが ＿
+車|車|くるま|あかい ＿
+手|手|て|＿を あらう
+十|十日|とおか|＿に あう
+出|出る|でる|へやから ＿
+女|女の子|おんなのこ|＿が わらう
+小|小さい|ちいさい|＿ ねこ
+上|上|うえ|やねの ＿
+森|森|もり|＿の どうぶつ
+人|人|ひと|たくさんの ＿
+水|水|みず|＿を のむ
+正|お正月|おしょうがつ|＿に おもちを たべる
+生|先生|せんせい|＿に きく
+青|青い|あおい|＿ うみ
+夕|夕日|ゆうひ|＿が しずむ
+石|石|いし|かわらで ＿を なげる
+赤|赤い|あかい|＿ りんご
+千|千円|せんえん|＿ さつ
+川|川|かわ|＿で およぐ
+先|先に|さきに|＿ いくね
+早|早い|はやい|おきるのが ＿
+草|草|くさ|にわの ＿を とる
+足|足|あし|＿が はやい
+村|村|むら|ちいさな ＿
+大|大きい|おおきい|＿ いえ
+男|男の子|おとこのこ|＿が はしる
+竹|竹|たけ|＿で つくった おもちゃ
+中|中|なか|はこの ＿
+虫|虫|むし|＿を つかまえる
+町|町|まち|にぎやかな ＿
+天|天気|てんき|いい ＿
+田|田んぼ|たんぼ|＿の おこめ
+土|土|つち|＿を ほる
+二|二つ|ふたつ|あめが ＿
+日|日よう日|にちようび|＿に あそぶ
+入|入る|はいる|おふろに ＿
+年|一年生|いちねんせい|＿に なった
+白|白い|しろい|＿ くも
+八|八つ|やっつ|おさらが ＿
+百|百まい|ひゃくまい|かみが ＿
+文|文|ぶん|みじかい ＿を かく
+木|木|き|＿に のぼる
+本|本|ほん|＿を よむ
+名|名まえ|なまえ|＿を よぶ
+目|目|め|＿を とじる
+立|立つ|たつ|いすから ＿
+力|力|ちから|＿が つよい
+林|林|はやし|＿の なか
+六|六月|ろくがつ|＿は あめが おおい`;
+
+const G2 = `
+引|引く|ひく|つなを ＿
+羽|羽|はね|とりの ＿
+雲|雲|くも|しろい ＿
+園|どうぶつ園|どうぶつえん|＿に いく
+遠|遠い|とおい|えきが ＿
+何|何|なに|＿を たべようかな
+科|理科|りか|＿の じっけん
+夏|夏|なつ|あつい ＿
+家|家|いえ|＿を たてる
+歌|歌|うた|＿を うたう
+画|画用紙|がようし|＿を くばる
+回|回る|まわる|こまが ＿
+会|会う|あう|ともだちに ＿
+海|海|うみ|＿で およぐ
+絵|絵|え|＿を かく
+外|外|そと|＿は さむい
+角|角|かど|＿を まがる
+楽|楽しい|たのしい|えんそくは ＿
+活|生活科|せいかつか|＿で やさいを そだてる
+間|時間|じかん|あそびの ＿
+丸|丸い|まるい|＿ おさら
+岩|岩|いわ|おおきな ＿
+顔|顔|かお|＿を あらう
+汽|汽車|きしゃ|＿が はしる
+記|日記|にっき|＿を つける
+帰|帰る|かえる|いえに ＿
+弓|弓|ゆみ|＿を ひく
+牛|牛にゅう|ぎゅうにゅう|＿を のむ
+魚|魚|さかな|＿を つる
+京|東京|とうきょう|＿の まち
+強|強い|つよい|＿ チーム
+教|教える|おしえる|みちを ＿
+近|近い|ちかい|こうえんが ＿
+兄|兄|あに|＿は ちゅうがくせい
+形|形|かたち|まるい ＿
+計|計算|けいさん|＿ドリル
+元|元気|げんき|＿な こえ
+言|言う|いう|おれいを ＿
+原|原っぱ|はらっぱ|＿で あそぶ
+戸|戸|と|＿を しめる
+古|古い|ふるい|＿ いえ
+午|午前|ごぜん|＿ちゅうに おわる
+後|後ろ|うしろ|＿を むく
+語|国語|こくご|＿の きょうかしょ
+工|工作|こうさく|＿で はこを つかう
+公|公園|こうえん|＿の すべりだい
+広|広い|ひろい|＿ にわ
+交|交通|こうつう|＿の きまり
+光|光る|ひかる|ほたるが ＿
+考|考える|かんがえる|よく ＿
+行|行く|いく|がっこうへ ＿
+高|高い|たかい|せが ＿
+黄|黄色|きいろ|＿の はな
+合|合わせる|あわせる|ちからを ＿
+谷|谷|たに|ふかい ＿
+国|外国|がいこく|＿へ りょこうする
+黒|黒い|くろい|＿ ねこ
+今|今日|きょう|＿は なんようび
+才|七才|ななさい|＿に なった
+細|細い|ほそい|＿ みち
+作|作る|つくる|ケーキを ＿
+算|算数|さんすう|＿の じゅぎょう
+止|止まる|とまる|くるまが ＿
+市|市場|いちば|＿の さかなやさん
+矢|矢|や|＿を うつ
+姉|姉|あね|＿は さんねんせい
+思|思う|おもう|そう ＿
+紙|紙|かみ|＿を おる
+寺|お寺|おてら|ふるい ＿
+自|自分|じぶん|＿で やる
+時|時計|とけい|＿を みる
+室|教室|きょうしつ|＿に はいる
+社|会社|かいしゃ|＿に いく
+弱|弱い|よわい|かぜが ＿
+首|首|くび|きりんの ながい ＿
+秋|秋|あき|＿の おちば
+週|来週|らいしゅう|＿の テスト
+春|春|はる|＿の はな
+書|書く|かく|てがみを ＿
+少|少し|すこし|＿ まってね
+場|場しょ|ばしょ|あつまる ＿
+色|色|いろ|すきな ＿
+食|食べる|たべる|ごはんを ＿
+心|心|こころ|やさしい ＿
+新|新しい|あたらしい|＿ くつ
+親|親子|おやこ|＿で あそぶ
+図|図書かん|としょかん|＿で ほんを かりる
+数|数える|かぞえる|ほしを ＿
+西|西|にし|たいようが ＿に しずむ
+声|声|こえ|おおきな ＿
+星|星|ほし|＿が ひかる
+晴|晴れ|はれ|あしたは ＿
+切|切る|きる|かみを ＿
+雪|雪|ゆき|＿が つもる
+船|船|ふね|＿が みなとに つく
+線|線|せん|まっすぐな ＿
+前|前|まえ|えきの ＿
+組|二組|にくみ|ぼくは ＿です
+走|走る|はしる|うんどうじょうを ＿
+多|多い|おおい|ひとが ＿
+太|太い|ふとい|＿ き
+体|体いく|たいいく|＿の じかん
+台|台どころ|だいどころ|＿で りょうりする
+地|地めん|じめん|＿に すわる
+池|池|いけ|＿の こい
+知|知る|しる|なまえを ＿
+茶|お茶|おちゃ|＿を いれる
+昼|昼休み|ひるやすみ|＿に あそぶ
+長|長い|ながい|＿ ひも
+鳥|鳥|とり|＿が とぶ
+朝|朝|あさ|＿ はやく おきる
+直|直す|なおす|まちがいを ＿
+通|通る|とおる|はしを ＿
+弟|弟|おとうと|＿と けんかした
+店|店|みせ|＿で かう
+点|百点|ひゃくてん|テストで ＿
+電|電車|でんしゃ|＿に のる
+刀|刀|かたな|さむらいの ＿
+冬|冬|ふゆ|さむい ＿
+当|本当|ほんとう|＿の はなし
+東|東|ひがし|たいようが ＿から のぼる
+答|答え|こたえ|＿が わかった
+頭|頭|あたま|＿を なでる
+同|同じ|おなじ|＿ いろ
+道|道|みち|ひろい ＿
+読|読む|よむ|ほんを ＿
+内|町内|ちょうない|＿の おまつり
+南|南|みなみ|＿の しま
+肉|肉|にく|＿を やく
+馬|馬|うま|＿に のる
+売|売る|うる|やさいを ＿
+買|買う|かう|おかしを ＿
+麦|麦茶|むぎちゃ|つめたい ＿
+半|半分|はんぶん|＿に わける
+番|一番|いちばん|＿に ゴール
+父|父|ちち|＿の しごと
+風|風|かぜ|つよい ＿
+分|五分|ごふん|あと ＿
+聞|聞く|きく|はなしを ＿
+米|お米|おこめ|＿を たく
+歩|歩く|あるく|ゆっくり ＿
+母|母|はは|＿の たんじょうび
+方|夕方|ゆうがた|＿に かえる
+北|北|きた|＿の くに
+毎|毎日|まいにち|＿ べんきょうする
+妹|妹|いもうと|＿と あそぶ
+万|一万円|いちまんえん|＿ さつ
+明|明るい|あかるい|＿ へや
+鳴|鳴く|なく|ねこが ＿
+毛|毛|け|ふわふわの ＿
+門|門|もん|がっこうの ＿
+夜|夜|よる|＿に ねる
+野|野さい|やさい|＿を たべる
+友|友だち|ともだち|＿と あそぶ
+用|用じ|ようじ|＿が ある
+曜|月曜日|げつようび|＿は がっこう
+来|来る|くる|ともだちが ＿
+里|里山|さとやま|＿の けしき
+理|理ゆう|りゆう|＿を きく
+話|話す|はなす|ともだちと ＿`;
+
+const parse = t => t.trim().split("\n").map(l=>{const [k,w,y,s]=l.split("|");return {k,w,y,s}});
+const K1 = parse(G1), K2 = parse(G2);
+
+/* にている 漢字（かきの もんだいの まちがい用） */
+const SIM = ["人入八大太犬天","日目白百自","木本林森休体","土王玉","右石左古","力刀万方","千午牛","気汽","門間聞","読語話記","早草","夕名多外","先生","見貝","東車","雨雲電雪","田町男","子字学","今会","時寺","教考","近遠道通週","姉妹","兄元光","海毎母","鳥鳴","明朝","買売","分切","内肉","紙組線細糸","秋科","米来","引弓弱強","顔頭","西四","小少","上止正","新親","地池","里理野","晴青","国図回","星生","昼書"];
+const simOf = k => { const g = SIM.find(s=>s.includes(k)); return g ? [...g].filter(c=>c!==k) : [] };
+
+const r = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=r(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* よみの まちがえやすい かたち：だくてん・のばす音・小さい っ */
+const DAKU = {か:"が",き:"ぎ",く:"ぐ",け:"げ",こ:"ご",さ:"ざ",し:"じ",す:"ず",せ:"ぜ",そ:"ぞ",た:"だ",ち:"ぢ",つ:"づ",て:"で",と:"ど",は:"ば",ひ:"び",ふ:"ぶ",へ:"べ",ほ:"ぼ"};
+const UNDAKU = Object.fromEntries(Object.entries(DAKU).map(([a,b])=>[b,a]));
+function mutations(y){
+  const out = new Set();
+  [...y].forEach((c,i)=>{
+    if(DAKU[c]) out.add(y.slice(0,i)+DAKU[c]+y.slice(i+1));
+    if(UNDAKU[c]) out.add(y.slice(0,i)+UNDAKU[c]+y.slice(i+1));
+  });
+  if(y.includes("っ")) out.add(y.replace("っ","つ"));
+  if(/[おこそとのほもよろごぞどぼょ]う/.test(y)) out.add(y.replace(/([おこそとのほもよろごぞどぼょ])う/,"$1"));
+  if(y.includes("ゅう")) out.add(y.replace("ゅう","ゅ"));
+  if(y.includes("ゃ")) out.add(y.replace("ゃ","や"));
+  out.delete(y);
+  return [...out];
+}
+
+function readQ(it, pool){
+  const opts = new Set([it.y]);
+  for(const m of shuffle(mutations(it.y))){ if(opts.size>=2) break; opts.add(m) }
+  const others = shuffle(pool.filter(o=>o.k!==it.k && o.y!==it.y));
+  const near = others.filter(o=>o.w.includes(it.k) || Math.abs(o.y.length-it.y.length)<=1);
+  for(const o of [...near, ...others]){ if(opts.size>=4) break; opts.add(o.y) }
+  return {mode:"yomi", it, choices:shuffle([...opts]), ans:it.y};
+}
+function writeQ(it, pool){
+  const allowed = new Set(pool.map(o=>o.k));
+  const opts = new Set([it.w]);
+  for(const c of shuffle(simOf(it.k).filter(c=>allowed.has(c)))){ if(opts.size>=4) break; opts.add(it.w.replace(it.k,c)) }
+  for(const o of shuffle(pool)){ if(opts.size>=4) break; if(o.k!==it.k) opts.add(it.w.replace(it.k,o.k)) }
+  return {mode:"kaki", it, choices:shuffle([...opts]), ans:it.w};
+}
+
+const UNITS = [
+  {group:"1年生の 漢字（80字）"},
+  {id:"1a", title:"1年 その1", list:K1.slice(0,40), pool:K1},
+  {id:"1b", title:"1年 その2", list:K1.slice(40), pool:K1},
+  {id:"1all", title:"1年 ぜんぶ", list:K1, pool:K1},
+  {group:"2年生の 漢字（160字）"},
+  {id:"2a", title:"2年 その1", list:K2.slice(0,40), pool:K2},
+  {id:"2b", title:"2年 その2", list:K2.slice(40,80), pool:K2},
+  {id:"2c", title:"2年 その3", list:K2.slice(80,120), pool:K2},
+  {id:"2d", title:"2年 その4", list:K2.slice(120), pool:K2},
+  {id:"2all", title:"2年 ぜんぶ", list:K2, pool:K2},
+];
+
+let s = {};
+const app = document.getElementById("app");
+
+function home(){
+  s = {};
+  app.innerHTML = `
+    <h1>漢字ノート 1・2年</h1>
+    <p class="lead">「よみ」は 漢字の よみかた、「かき」は ただしい 漢字を えらぶ もんだいです。1回 ${TOTAL}もん。</p>
+    <div class="units">${UNITS.map(u=>u.group
+      ? `<div class="group">${u.group}</div>`
+      : `<div class="unit"><div class="name"><b>${u.title}</b><small>${u.list.map(i=>i.k).join("")}</small></div>
+           <button class="mode" data-id="${u.id}" data-m="yomi">よみ</button>
+           <button class="mode" data-id="${u.id}" data-m="kaki">かき</button></div>`).join("")}
+    </div>`;
+  app.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.id,b.dataset.m));
+}
+
+function start(id, mode){
+  const u = UNITS.find(x=>x.id===id);
+  const items = shuffle(u.list).slice(0,TOTAL);
+  const qs = items.map(it=> mode==="yomi" ? readQ(it,u.pool) : writeQ(it,u.pool));
+  s = {u, mode, qs, i:0, ok:0, miss:[], locked:false};
+  draw();
+}
+
+function sentence(q){
+  const word = q.mode==="yomi" ? q.it.w : q.it.y;
+  return q.it.s.replace("＿", `<span class="tg">${word}</span>`);
+}
+
+function draw(){
+  const q = s.qs[s.i];
+  app.innerHTML = `
+    <div class="top"><button class="link" id="quit">やめる</button><span>${s.u.title}・${s.mode==="yomi"?"よみ":"かき"}</span><span>${s.i+1} / ${TOTAL}</span></div>
+    <div class="bar"><i style="width:${s.i/TOTAL*100}%"></i></div>
+    <div class="sheet">
+      <p class="ask">${q.mode==="yomi" ? "せんの ところの よみかたは？" : "せんの ところを 漢字で かくと？"}</p>
+      <div class="sent">${sentence(q)}</div>
+      <div class="fb" id="fb"></div>
+    </div>
+    <div class="choices">${q.choices.map(c=>`<button class="choice ${q.mode==="kaki"?"big":""}" data-c="${c}">${c}</button>`).join("")}</div>
+    <button class="btn" id="go" disabled>つぎへ</button>`;
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>choose(b));
+  document.getElementById("go").onclick=()=>{ if(s.locked) next() };
+  document.getElementById("quit").onclick=home;
+}
+
+function choose(btn){
+  if(s.locked) return;
+  const q=s.qs[s.i], c=btn.dataset.c, fb=document.getElementById("fb");
+  s.locked=true;
+  app.querySelectorAll(".choice").forEach(b=>{b.disabled=true; if(b.dataset.c===q.ans) b.classList.add("ok")});
+  if(c===q.ans){ s.ok++; fb.className="fb ok"; fb.textContent="せいかい"; }
+  else { btn.classList.add("ng"); s.miss.push({q, your:c}); fb.className="fb ng"; fb.textContent=`こたえは「${q.ans}」`; }
+  const go=document.getElementById("go"); go.disabled=false; go.textContent=s.i+1<TOTAL?"つぎへ":"おわり"; go.focus();
+}
+
+function next(){
+  s.i++; s.locked=false;
+  s.i<TOTAL ? draw() : done();
+}
+
+function done(){
+  const ok=s.ok;
+  const msg = ok===TOTAL ? "ぜんもん せいかい！漢字を よく おぼえているね。"
+    : ok>=7 ? "よく できました。まちがえた 漢字を もういちど 見てみよう。"
+    : "さいごまで あきらめずに できたね。くりかえすと どんどん おぼえられるよ。";
+  app.innerHTML = `
+    <div class="sheet done">
+      <h2>がんばったね！</h2>
+      <p class="msg">${msg}</p>
+      <p class="score">${ok}<small> / ${TOTAL} もん</small></p>
+    </div>
+    ${s.miss.length?`<div class="sheet">
+      <div class="group" style="margin:0 0 10px">見なおし</div>
+      <ul class="review">${s.miss.map(m=>`<li><span><ruby>${m.q.it.w}<rt>${m.q.it.y}</rt></ruby></span><span class="your">（${m.your}）</span></li>`).join("")}</ul>
+    </div>`:""}
+    <div class="row">
+      <button class="btn" id="again">もういちど やる</button>
+      <button class="btn ghost" id="back">ほかの もんだいを えらぶ</button>
+    </div>`;
+  const id=s.u.id, mode=s.mode;
+  document.getElementById("again").onclick=()=>start(id,mode);
+  document.getElementById("back").onclick=home;
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && s.qs && s.locked){ e.preventDefault(); next(); }
+});
+
+home();
+</script>
+
+</body>
+</html>
