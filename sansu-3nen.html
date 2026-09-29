@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>3年の算数ふくしゅう</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-column "math notebook" — grid paper ground, one question card, answer boxes you tap to choose, keypad under the thumb */
+:root{
+  --paper:#eef3f6; --grid:#d5e1e8; --sheet:#fbfdfe; --ink:#1f3350; --sub:#5d6f82;
+  --line:#c9d6df; --accent:#2f6fa8; --accent-ink:#ffffff; --ok:#2e7d5b; --ng:#b4473f; --key:#e4ecf2; --focus:#dbe8f4;
+  --f-num:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --focus:#23384c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --focus:#23384c; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:20px 28px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem;line-height:1.6}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:16px}
+.units{display:flex;flex-direction:column;gap:8px}
+.group{font-size:.8rem;letter-spacing:.08em;color:var(--sub);margin:8px 0 -2px}
+.unit{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;
+  font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 16px;cursor:pointer}
+.unit:hover{border-color:var(--accent)}
+.unit b{font-size:1rem;display:block}
+.unit small{color:var(--sub);font-size:.85rem}
+.unit .ex{font-family:var(--f-num);color:var(--sub);white-space:nowrap;font-size:.95rem}
+.unit.mix{border-style:dashed}
+.unit:focus-visible,.key:focus-visible,.btn:focus-visible,.link:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.95rem;color:var(--sub)}
+.link{background:none;border:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:4px}
+.bar{height:6px;background:var(--key);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.tag{font-size:.8rem;color:var(--sub);margin:0 0 4px}
+.q{font-family:var(--f-num);font-weight:600;font-size:clamp(1.35rem,6.4vw,1.75rem);line-height:1.8;text-align:center;font-variant-numeric:tabular-nums;text-wrap:balance}
+.q.expr{font-size:clamp(1.8rem,9vw,2.4rem)}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .1em;font-size:.9em}
+.frac>span:first-child{border-bottom:2px solid currentColor;padding:0 .2em}
+.ans{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px;font-family:var(--f-num);font-weight:600;font-size:1.4rem;padding-top:10px}
+.box{min-width:2.6em;min-height:1.7em;padding:0 .3em;border:none;border-bottom:3px solid var(--ink);background:transparent;color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;text-align:center;cursor:pointer;border-radius:6px 6px 0 0}
+.box.on{background:var(--focus)}
+.box.ok{color:var(--ok);border-color:var(--ok);background:transparent}
+.box.ng{color:var(--ng);border-color:var(--ng);background:transparent;text-decoration:line-through}
+.fbox{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.fbox .box{min-width:2.2em}
+.fbox hr{width:100%;border:none;border-top:2px solid var(--ink);margin:0}
+.fb{min-height:1.6em;text-align:center;font-size:1.05rem;font-weight:700;margin-top:8px}
+.fb.ok{color:var(--ok)} .fb.ng{color:var(--ng)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{font-family:var(--f-num);font-size:1.5rem;font-weight:600;padding:10px 0;border:none;border-radius:10px;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.key:active{filter:brightness(.93)}
+.key.sm{font-family:var(--f-ui);font-size:1rem}
+.acts{display:flex;gap:8px}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;padding:14px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer;flex:1}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.done h2{font-size:1.6rem;margin:0 0 6px;text-align:center;text-wrap:balance}
+.done .msg{text-align:center;margin:0;color:var(--sub);line-height:1.7}
+.score{font-family:var(--f-num);font-size:2.4rem;text-align:center;font-weight:600;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-family:var(--f-num);font-size:1.05rem;line-height:1.6}
+.review li{border-bottom:1px dashed var(--line);padding-bottom:8px}
+.review .a{color:var(--ok);font-weight:600}
+.review .your{color:var(--ng);font-size:.95rem}
+.row{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.home-link{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:0 24px;font-size:.9rem}
+.home-link a{color:var(--sub)}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<p class="home-link"><a href="./">もくじに もどる</a></p>
+
+<script>
+const TOTAL = 10;
+const r = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+
+/* 小数は 整数で 計算して 文字にする（0.1+0.2 の ずれを さける） */
+const dec = (n,p)=>{ const s=(n/10**p).toFixed(p); return p? s.replace(/0+$/,"").replace(/\.$/,"") : s };
+const F = (n,d,w)=>`${w?w:""}<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+const fracText = (w,n,d)=> (w?`${w}と`:"") + (n?`${d}分の${n}`:"");
+const man = n=>{ // 350000000 → 3億5000万
+  const cho=Math.floor(n/1e12), oku=Math.floor(n%1e12/1e8), mn=Math.floor(n%1e8/1e4), ichi=n%1e4;
+  return (cho?cho+"兆":"")+(oku?oku+"億":"")+(mn?mn+"万":"")+(ichi?ichi:"") || "0";
+};
+
+/* 問題の かたち
+   {q, expr?, boxes:[{pre?,post?,ans}], show}           数を 入れる（いくつかの ます）
+   {q, expr?, frac:{mode, w,n,d}, show}                  分数で 答える  mode: val / mixed / improper   */
+const N = (q,ans,o={})=>({q, boxes:[{ans, post:o.post}], show:o.show ?? String(ans)+(o.post||""), expr:o.expr});
+const QR = (a,b)=>{const q=Math.floor(a/b), m=a%b; return {q:`${a} ÷ ${b} =`, expr:true, boxes:[{ans:q},{pre:"あまり",ans:m,zeroOk:true}], show: m?`${q} あまり ${m}`:`${q}（あまりなし）`}};
+
+const UNITS = [
+  {group:"3年の ふくしゅう"},
+  {id:"mul", title:"かけ算の 筆算", ex:"47 × 36", gen(){
+    const k=r(0,2); let a,b;
+    if(k===0){a=r(12,98);b=r(3,9)} else if(k===1){a=r(102,987);b=r(3,9)} else {a=r(12,98);b=r(12,98)}
+    return N(`${a} × ${b} =`, a*b, {expr:true})}},
+  {id:"div3", title:"わり算（あまり）", ex:"38 ÷ 7", gen(){
+    const b=r(2,9), q=r(1,9), m=Math.random()<.3?0:r(1,b-1); return QR(b*q+m,b)}},
+  {id:"big3", title:"大きい数（万）", ex:"1000が 45こ", gen(){
+    const k=r(0,3);
+    if(k===0){const a=r(1,9),b=r(1,9),c=r(0,9);return N(`10000を ${a}こ、1000を ${b}こ、100を ${c}こ あわせた数は？`, a*10000+b*1000+c*100)}
+    if(k===1){const n=r(12,99)*1000;return N(`${n} は 1000を 何こ 集めた数？`, n/1000, {post:"こ"})}
+    if(k===2){const n=r(11,99)*100, t=pick([10,100]);return N(`${n} を ${t}倍 した数は？`, n*t)}
+    const n=r(11,99)*100; return N(`${n} を 10で わった数は？`, n/10)}},
+  {id:"dec3", title:"小数の たし算・ひき算", ex:"2.7 + 1.5", gen(){
+    const a=r(5,99), b=r(1,99), op=pick(["+","−"]);
+    if(op==="+") return N(`${dec(a,1)} + ${dec(b,1)} =`, dec(a+b,1), {expr:true});
+    const [x,y]=a>b?[a,b]:[b,a]; if(x===y) return this.gen(); return N(`${dec(x,1)} − ${dec(y,1)} =`, dec(x-y,1), {expr:true})}},
+  {id:"frac3", title:"分数の たし算・ひき算", ex:"2/7 + 3/7", gen(){
+    const d=r(3,10), op=pick(["+","−"]);
+    if(op==="+"){const a=r(1,d-1),b=r(1,d-a);return {q:`${F(a,d)} + ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:a+b,d},show:a+b===d?"1":fracText(0,a+b,d)}}
+    if(Math.random()<.3){const b=r(1,d-1);return {q:`1 − ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:d-b,d},show:fracText(0,d-b,d)}}
+    const a=r(2,d-1),b=r(1,a-1);return {q:`${F(a,d)} − ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:a-b,d},show:fracText(0,a-b,d)}}},
+  {id:"time", title:"時こくと 時間", ex:"8時50分の 25分後", gen(){
+    const k=r(0,2), h=r(7,10), m=r(1,11)*5;
+    if(k===0){const d=r(2,11)*5, t=h*60+m+d; return {q:`${h}時${m}分の ${d}分後の 時こくは？`,boxes:[{ans:Math.floor(t/60),post:"時"},{ans:t%60,post:"分"}],show:`${Math.floor(t/60)}時${t%60}分`}}
+    if(k===1){const d=r(2,11)*5, t=h*60+m-d; return {q:`${h}時${m}分の ${d}分前の 時こくは？`,boxes:[{ans:Math.floor(t/60),post:"時"},{ans:t%60,post:"分"}],show:`${Math.floor(t/60)}時${t%60}分`}}
+    const d=r(3,11)*5, t=h*60+m+d; return N(`${h}時${m}分から ${Math.floor(t/60)}時${t%60}分までは 何分間？`, d, {post:"分"})}},
+  {id:"unit3", title:"長さと 重さの 単位", ex:"2km300m＝□m", gen(){
+    const k=r(0,3);
+    if(k===0){const a=r(1,9),b=r(1,999);return N(`${a}km ${b}m は 何m？`, a*1000+b, {post:"m"})}
+    if(k===1){const n=r(1001,9999);return {q:`${n}m は 何km 何m？`,boxes:[{ans:Math.floor(n/1000),post:"km"},{ans:n%1000,post:"m"}],show:`${Math.floor(n/1000)}km ${n%1000}m`}}
+    if(k===2){const a=r(1,9),b=r(1,999);return N(`${a}kg ${b}g は 何g？`, a*1000+b, {post:"g"})}
+    const n=r(1001,9999);return {q:`${n}g は 何kg 何g？`,boxes:[{ans:Math.floor(n/1000),post:"kg"},{ans:n%1000,post:"g"}],show:`${Math.floor(n/1000)}kg ${n%1000}g`}}},
+  {id:"mix3", title:"3年 まぜまぜ", ex:"いろいろ", mix:["mul","div3","big3","dec3","frac3","time","unit3"]},
+];
+const byId = id=>UNITS.find(u=>u.id===id);
+
+let s = {};
+const app = document.getElementById("app");
+
+function home(){
+  s = {};
+  app.innerHTML = `
+    <h1>3年の 算数ふくしゅう</h1>
+    <p class="lead">やりたい 単元を 選ぼう。1回 ${TOTAL}問です。答えの ますは、さわって 切りかえられます。</p>
+    <div class="units">${UNITS.map(u=>u.group
+      ? `<div class="group">${u.group}</div>`
+      : `<button class="unit ${u.mix?"mix":""}" data-id="${u.id}"><span><b>${u.title}</b></span><span class="ex">${u.ex}</span></button>`).join("")}
+    </div>`;
+  app.querySelectorAll(".unit").forEach(b=>b.onclick=()=>start(b.dataset.id));
+}
+
+function start(id){
+  const u=byId(id), qs=[], seen=new Set(); let guard=0;
+  while(qs.length<TOTAL && guard++<500){
+    const src = u.mix ? byId(pick(u.mix)) : u;
+    const q = src.gen(); q.unit = src.title;
+    if(!seen.has(q.q)){seen.add(q.q); qs.push(q)}
+  }
+  s = {u, qs, i:0, ok:0, miss:[], locked:false};
+  draw();
+}
+
+function slots(q){ // 入力する ますの 一覧
+  if(q.frac) return (q.frac.mode==="improper"||q.frac.nw) ? ["n","d"] : ["w","n","d"];
+  return q.boxes.map((_,i)=>"b"+i);
+}
+
+function draw(){
+  const q=s.qs[s.i];
+  s.vals={}; s.keys=slots(q); s.cur=s.keys[0];
+  let ans;
+  if(q.frac){
+    const w = (q.frac.mode==="improper"||q.frac.nw) ? "" : `<button class="box" data-s="w" aria-label="整数"></button>`;
+    ans = `${w}<span class="fbox"><button class="box" data-s="n" aria-label="分子"></button><hr><button class="box" data-s="d" aria-label="分母"></button></span>`;
+  } else {
+    ans = q.boxes.map((b,i)=>`${b.pre?`<span>${b.pre}</span>`:""}<button class="box" data-s="b${i}"></button>${b.post?`<span>${b.post}</span>`:""}`).join("");
+  }
+  app.innerHTML = `
+    <div class="top"><button class="link" id="quit">やめる</button><span>${s.u.title}</span><span>${s.i+1} / ${TOTAL}</span></div>
+    <div class="bar"><i style="width:${s.i/TOTAL*100}%"></i></div>
+    <div class="sheet">
+      ${s.u.mix?`<p class="tag">${q.unit}</p>`:""}
+      <div class="q ${q.expr?"expr":""}">${q.q}</div>
+      <div class="ans">${ans}</div>
+      <div class="fb" id="fb"></div>
+    </div>
+    <div class="pad">
+      ${[7,8,9,4,5,6,1,2,3].map(n=>`<button class="key" data-k="${n}">${n}</button>`).join("")}
+      <button class="key" data-k=".">.</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key sm" data-k="del">けす</button>
+    </div>
+    <div class="acts">
+      ${s.keys.length>1?`<button class="btn ghost" id="nx">つぎの ます</button>`:""}
+      <button class="btn" id="go">答える</button>
+    </div>`;
+  app.querySelectorAll(".box").forEach(b=>b.onclick=()=>{ if(!s.locked){ s.cur=b.dataset.s; paint() } });
+  app.querySelectorAll(".key").forEach(b=>b.onclick=()=>press(b.dataset.k));
+  const nx=document.getElementById("nx"); if(nx) nx.onclick=()=>{ if(!s.locked){ s.cur=s.keys[(s.keys.indexOf(s.cur)+1)%s.keys.length]; paint() } };
+  document.getElementById("go").onclick=submit;
+  document.getElementById("quit").onclick=home;
+  paint();
+}
+
+function paint(){
+  app.querySelectorAll(".box").forEach(b=>{
+    const k=b.dataset.s; b.textContent=s.vals[k]||"";
+    b.classList.toggle("on", !s.locked && k===s.cur);
+  });
+  const go=document.getElementById("go");
+  if(!s.locked) go.disabled = !Object.values(s.vals).some(v=>v);
+}
+
+function press(k){
+  if(s.locked||!s.qs) return;
+  let v=s.vals[s.cur]||"";
+  if(k==="del") v=v.slice(0,-1);
+  else if(k==="."){ if(!v.includes(".")) v=(v||"0")+"." }
+  else if(v.length<12) v=(v==="0"?"":v)+k;
+  s.vals[s.cur]=v; paint();
+}
+
+const num = v=>v===undefined||v===""?NaN:Number(v);
+function check(q){
+  if(q.frac){
+    const f=q.frac, w=s.vals.w?num(s.vals.w):0, n=s.vals.n?num(s.vals.n):0, d=s.vals.d?num(s.vals.d):0;
+    if([w,n,d].some(isNaN)||!Number.isInteger(w)||!Number.isInteger(n)||!Number.isInteger(d)) return false;
+    if(!d && n && f.mode!=="val") return false;
+    const target = f.w + f.n/f.d, got = w + (d? n/d : n);
+    if(Math.abs(target-got)>1e-9) return false;
+    if(f.mode==="mixed") return w>=1 && n>=1 && n<d;
+    if(f.mode==="improper") return d>0 && n>=d;
+    return true;
+  }
+  return q.boxes.every((b,i)=>{const v=s.vals["b"+i]; return Math.abs((b.zeroOk&&!v?0:num(v))-Number(b.ans))<1e-9});
+}
+
+function yourText(q){
+  if(q.frac){const {w,n,d}=s.vals; return fracText(w&&w!=="0"?w:"", n||"", d||"□") || "（空らん）"}
+  return q.boxes.map((b,i)=>(b.pre?b.pre+" ":"")+(s.vals["b"+i]||"□")+(b.post||"")).join(" ");
+}
+
+function submit(){
+  if(s.locked){ next(); return; }
+  if(!Object.values(s.vals).some(v=>v)) return;
+  const q=s.qs[s.i], fb=document.getElementById("fb"), go=document.getElementById("go"), ok=check(q);
+  s.locked=true;
+  app.querySelectorAll(".box").forEach(b=>b.classList.add(ok?"ok":"ng"));
+  if(ok){ s.ok++; fb.className="fb ok"; fb.textContent="正解"; }
+  else { s.miss.push({q, your:yourText(q)}); fb.className="fb ng"; fb.textContent=`答えは ${q.show}`; }
+  const nx=document.getElementById("nx"); if(nx) nx.disabled=true;
+  go.disabled=false; go.textContent=s.i+1<TOTAL?"つぎへ":"おわり"; paint();
+}
+
+function next(){ s.i++; s.locked=false; s.i<TOTAL ? draw() : done(); }
+
+function done(){
+  const ok=s.ok;
+  const msg = ok===TOTAL ? "全問正解！ていねいに 計算できたね。"
+    : ok>=7 ? "よくできました。まちがえた 問題を 見直して おこう。"
+    : "最後まで あきらめずに とけたね。見直しを すると 次は もっと できるよ。";
+  app.innerHTML = `
+    <div class="sheet done">
+      <h2>頑張ったね！</h2>
+      <p class="msg">${msg}</p>
+      <p class="score">${ok}<small> / ${TOTAL} 問</small></p>
+    </div>
+    ${s.miss.length?`<div class="sheet">
+      <div class="group" style="margin:0 0 10px">見直し</div>
+      <ul class="review">${s.miss.map(m=>`<li><div>${m.q.q.replace(/=$/,"")}</div><div><span class="a">答え ${m.q.show}</span>　<span class="your">（${m.your}）</span></div></li>`).join("")}</ul>
+    </div>`:""}
+    <div class="row">
+      <button class="btn" id="again">もう一度 やる</button>
+      <button class="btn ghost" id="back">ほかの 単元を 選ぶ</button>
+    </div>`;
+  const id=s.u.id;
+  document.getElementById("again").onclick=()=>start(id);
+  document.getElementById("back").onclick=home;
+}
+
+document.addEventListener("keydown",e=>{
+  if(!s.qs) return;
+  if(/^[0-9.]$/.test(e.key)) press(e.key);
+  else if(e.key==="Backspace") press("del");
+  else if(e.key==="Tab" && !s.locked && s.keys.length>1){ e.preventDefault(); s.cur=s.keys[(s.keys.indexOf(s.cur)+1)%s.keys.length]; paint() }
+  else if(e.key==="Enter"){ e.preventDefault(); submit() }
+});
+
+home();
+</script>
+
+</body>
+</html>

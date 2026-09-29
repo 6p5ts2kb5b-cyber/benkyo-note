@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>3・4年の算数ふくしゅう</title>
+<title>4年の算数ふくしゅう</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <style>
@@ -108,41 +108,6 @@ const N = (q,ans,o={})=>({q, boxes:[{ans, post:o.post}], show:o.show ?? String(a
 const QR = (a,b)=>{const q=Math.floor(a/b), m=a%b; return {q:`${a} ÷ ${b} =`, expr:true, boxes:[{ans:q},{pre:"あまり",ans:m,zeroOk:true}], show: m?`${q} あまり ${m}`:`${q}（あまりなし）`}};
 
 const UNITS = [
-  {group:"3年の ふくしゅう"},
-  {id:"mul", title:"かけ算の 筆算", ex:"47 × 36", gen(){
-    const k=r(0,2); let a,b;
-    if(k===0){a=r(12,98);b=r(3,9)} else if(k===1){a=r(102,987);b=r(3,9)} else {a=r(12,98);b=r(12,98)}
-    return N(`${a} × ${b} =`, a*b, {expr:true})}},
-  {id:"div3", title:"わり算（あまり）", ex:"38 ÷ 7", gen(){
-    const b=r(2,9), q=r(1,9), m=Math.random()<.3?0:r(1,b-1); return QR(b*q+m,b)}},
-  {id:"big3", title:"大きい数（万）", ex:"1000が 45こ", gen(){
-    const k=r(0,3);
-    if(k===0){const a=r(1,9),b=r(1,9),c=r(0,9);return N(`10000を ${a}こ、1000を ${b}こ、100を ${c}こ あわせた数は？`, a*10000+b*1000+c*100)}
-    if(k===1){const n=r(12,99)*1000;return N(`${n} は 1000を 何こ 集めた数？`, n/1000, {post:"こ"})}
-    if(k===2){const n=r(11,99)*100, t=pick([10,100]);return N(`${n} を ${t}倍 した数は？`, n*t)}
-    const n=r(11,99)*100; return N(`${n} を 10で わった数は？`, n/10)}},
-  {id:"dec3", title:"小数の たし算・ひき算", ex:"2.7 + 1.5", gen(){
-    const a=r(5,99), b=r(1,99), op=pick(["+","−"]);
-    if(op==="+") return N(`${dec(a,1)} + ${dec(b,1)} =`, dec(a+b,1), {expr:true});
-    const [x,y]=a>b?[a,b]:[b,a]; if(x===y) return this.gen(); return N(`${dec(x,1)} − ${dec(y,1)} =`, dec(x-y,1), {expr:true})}},
-  {id:"frac3", title:"分数の たし算・ひき算", ex:"2/7 + 3/7", gen(){
-    const d=r(3,10), op=pick(["+","−"]);
-    if(op==="+"){const a=r(1,d-1),b=r(1,d-a);return {q:`${F(a,d)} + ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:a+b,d},show:a+b===d?"1":fracText(0,a+b,d)}}
-    if(Math.random()<.3){const b=r(1,d-1);return {q:`1 − ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:d-b,d},show:fracText(0,d-b,d)}}
-    const a=r(2,d-1),b=r(1,a-1);return {q:`${F(a,d)} − ${F(b,d)} =`,expr:true,frac:{mode:"val",nw:1,w:0,n:a-b,d},show:fracText(0,a-b,d)}}},
-  {id:"time", title:"時こくと 時間", ex:"8時50分の 25分後", gen(){
-    const k=r(0,2), h=r(7,10), m=r(1,11)*5;
-    if(k===0){const d=r(2,11)*5, t=h*60+m+d; return {q:`${h}時${m}分の ${d}分後の 時こくは？`,boxes:[{ans:Math.floor(t/60),post:"時"},{ans:t%60,post:"分"}],show:`${Math.floor(t/60)}時${t%60}分`}}
-    if(k===1){const d=r(2,11)*5, t=h*60+m-d; return {q:`${h}時${m}分の ${d}分前の 時こくは？`,boxes:[{ans:Math.floor(t/60),post:"時"},{ans:t%60,post:"分"}],show:`${Math.floor(t/60)}時${t%60}分`}}
-    const d=r(3,11)*5, t=h*60+m+d; return N(`${h}時${m}分から ${Math.floor(t/60)}時${t%60}分までは 何分間？`, d, {post:"分"})}},
-  {id:"unit3", title:"長さと 重さの 単位", ex:"2km300m＝□m", gen(){
-    const k=r(0,3);
-    if(k===0){const a=r(1,9),b=r(1,999);return N(`${a}km ${b}m は 何m？`, a*1000+b, {post:"m"})}
-    if(k===1){const n=r(1001,9999);return {q:`${n}m は 何km 何m？`,boxes:[{ans:Math.floor(n/1000),post:"km"},{ans:n%1000,post:"m"}],show:`${Math.floor(n/1000)}km ${n%1000}m`}}
-    if(k===2){const a=r(1,9),b=r(1,999);return N(`${a}kg ${b}g は 何g？`, a*1000+b, {post:"g"})}
-    const n=r(1001,9999);return {q:`${n}g は 何kg 何g？`,boxes:[{ans:Math.floor(n/1000),post:"kg"},{ans:n%1000,post:"g"}],show:`${Math.floor(n/1000)}kg ${n%1000}g`}}},
-  {id:"mix3", title:"3年 まぜまぜ", ex:"いろいろ", mix:["mul","div3","big3","dec3","frac3","time","unit3"]},
-
   {group:"4年の ふくしゅう"},
   {id:"big4", title:"大きい数（億・兆）", ex:"1億を 10倍", gen(){
     const k=r(0,3);
@@ -197,8 +162,6 @@ const UNITS = [
     if(k===3){const [q,ans,post]=pick([["1m² は 何cm²？",10000,"cm²"],["1a は 何m²？",100,"m²"],["1ha は 何a？",100,"a"],["1ha は 何m²？",10000,"m²"],["1km² は 何ha？",100,"ha"]]);return N(q,ans,{post})}
     const a=r(2,9),b=r(2,9);return N(`たて ${a*10}m、よこ ${b*10}m の 畑の 面積は 何a？`, a*b, {post:"a"})}},
   {id:"mix4", title:"4年 まぜまぜ", ex:"いろいろ", mix:["big4","div4a","div4b","angle","round","order","dec4","decmd","frac4","area"]},
-  {group:"ぜんぶ"},
-  {id:"mixall", title:"3・4年 まぜまぜ", ex:"総復習", mix:["mul","div3","big3","dec3","frac3","time","unit3","big4","div4a","div4b","angle","round","order","dec4","decmd","frac4","area"]},
 ];
 const byId = id=>UNITS.find(u=>u.id===id);
 
@@ -208,7 +171,7 @@ const app = document.getElementById("app");
 function home(){
   s = {};
   app.innerHTML = `
-    <h1>3・4年の 算数ふくしゅう</h1>
+    <h1>4年の 算数ふくしゅう</h1>
     <p class="lead">やりたい 単元を 選ぼう。1回 ${TOTAL}問です。答えの ますは、さわって 切りかえられます。</p>
     <div class="units">${UNITS.map(u=>u.group
       ? `<div class="group">${u.group}</div>`

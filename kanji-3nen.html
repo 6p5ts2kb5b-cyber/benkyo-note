@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>漢字ノート3年</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-column "kanji notebook" — grid paper ground, a sentence card with the target word marked, 4 answer choices under the thumb */
+:root{
+  --paper:#eef3f6; --grid:#d5e1e8; --sheet:#fbfdfe; --ink:#1f3350; --sub:#5d6f82;
+  --line:#c9d6df; --accent:#2f6fa8; --accent-ink:#ffffff; --ok:#2e7d5b; --ng:#b4473f; --key:#e4ecf2; --mark:#f3e7b6;
+  --f-kanji:"Klee One","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --mark:#4a4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141c24; --grid:#1c2732; --sheet:#1a242e; --ink:#e3ecf3; --sub:#9aabbb;
+  --line:#2c3a47; --accent:#6ea8dc; --accent-ink:#0e1a26; --ok:#6cc39a; --ng:#e8877e; --key:#243240; --mark:#4a4320; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:20px 28px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem;line-height:1.6}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:18px}
+.units{display:flex;flex-direction:column;gap:10px}
+.group{font-size:.8rem;letter-spacing:.08em;color:var(--sub);margin:8px 0 -2px}
+.unit{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px 16px}
+.unit .name{flex:1;min-width:0}
+.unit b{display:block;font-size:1.05rem}
+.unit small{display:block;color:var(--sub);font-family:var(--f-kanji);font-size:.95rem;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mode{font:inherit;font-weight:700;font-size:.95rem;padding:10px 12px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap}
+.mode:hover{background:var(--key)}
+.mode:focus-visible,.btn:focus-visible,.choice:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.95rem;color:var(--sub)}
+.link{background:none;border:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:4px}
+.bar{height:6px;background:var(--key);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.ask{text-align:center;color:var(--sub);margin:0 0 6px;font-size:.95rem}
+.sent{font-family:var(--f-kanji);font-size:clamp(1.5rem,7vw,1.9rem);text-align:center;line-height:1.9;padding-block:10px;text-wrap:balance}
+.tg{font-weight:600;font-size:1.35em;border-bottom:3px solid var(--ink);padding:0 .1em;margin:0 .1em;background:linear-gradient(transparent 62%,var(--mark) 62%)}
+.fb{min-height:2.2em;text-align:center;font-size:1.05rem;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.ng{color:var(--ng)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{font-family:var(--f-kanji);font-weight:600;font-size:1.35rem;padding:16px 6px;border-radius:10px;border:2px solid transparent;background:var(--key);color:var(--ink);cursor:pointer;touch-action:manipulation;min-width:0;overflow-wrap:anywhere}
+.choice.big{font-size:1.9rem;padding:12px 6px}
+.choice.ok{border-color:var(--ok);color:var(--ok)}
+.choice.ng{border-color:var(--ng);color:var(--ng);text-decoration:line-through}
+.choice:disabled{cursor:default}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;padding:14px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.done h2{font-size:1.6rem;margin:0 0 6px;text-align:center;text-wrap:balance}
+.done .msg{text-align:center;margin:0;color:var(--sub);line-height:1.7}
+.score{font-family:var(--f-kanji);font-size:2.4rem;text-align:center;font-weight:600;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-family:var(--f-kanji);font-size:1.15rem}
+.review li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:8px}
+.review li span:first-child{min-width:0}
+.review ruby rt{font-size:.6em;color:var(--sub)}
+.review .your{color:var(--ng);font-size:.95rem;white-space:nowrap}
+.row{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.home-link{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:0 24px;font-size:.9rem}
+.home-link a{color:var(--sub)}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<p class="home-link"><a href="./">もくじに もどる</a></p>
+
+<script>
+const TOTAL = 10;
+
+/* 漢字|ことば|よみ|ぶん（＿ に ことばが 入る） */
+/* 漢字|ことば|よみ|ぶん（＿ に ことばが 入る） */
+const G3 = `
+悪|悪い|わるい|天気が ＿
+安|安心|あんしん|それを 聞いて ＿した
+暗|暗い|くらい|夜の 道は ＿
+医|医者|いしゃ|＿に みてもらう
+委|委員|いいん|学級＿に えらばれる
+意|意見|いけん|自分の ＿を 言う
+育|育てる|そだてる|あさがおを ＿
+員|店員|てんいん|＿さんに 聞く
+院|病院|びょういん|＿に 行く
+飲|飲む|のむ|水を ＿
+運|運ぶ|はこぶ|つくえを ＿
+泳|泳ぐ|およぐ|プールで ＿
+駅|駅|えき|＿で 待ち合わせる
+央|中央|ちゅうおう|町の ＿に ある 公園
+横|横|よこ|＿に ならぶ
+屋|屋上|おくじょう|＿から 町を 見る
+温|温度|おんど|へやの ＿を はかる
+化|化石|かせき|きょうりゅうの ＿
+荷|荷物|にもつ|重い ＿
+界|世界|せかい|＿の 国ぐに
+開|開ける|あける|まどを ＿
+階|二階|にかい|＿に 上がる
+寒|寒い|さむい|冬の 朝は ＿
+感|感想|かんそう|本の ＿を 書く
+漢|漢字|かんじ|＿の テスト
+館|図書館|としょかん|＿で 本を かりる
+岸|川岸|かわぎし|＿を 歩く
+起|起きる|おきる|朝 早く ＿
+期|学期|がっき|二＿が 始まる
+客|お客さん|おきゃくさん|店に ＿が 来る
+究|研究|けんきゅう|夏休みの 自由＿
+急|急ぐ|いそぐ|学校へ ＿
+級|学級|がっきゅう|＿会で 話し合う
+宮|お宮|おみや|森の 中の ＿
+球|野球|やきゅう|＿を する
+去|去年|きょねん|＿の 夏
+橋|橋|はし|＿を わたる
+業|作業|さぎょう|みんなで ＿を する
+曲|曲|きょく|すきな ＿を 聞く
+局|ゆうびん局|ゆうびんきょく|＿で 切手を 買う
+銀|銀色|ぎんいろ|＿の 紙
+区|地区|ちく|この ＿の 子ども会
+苦|苦い|にがい|この 薬は ＿
+具|道具|どうぐ|＿を かたづける
+君|君|きみ|＿の 名前は 何ですか
+係|係|かかり|生き物の ＿に なる
+軽|軽い|かるい|この かばんは ＿
+血|血|ち|ひざから ＿が 出た
+決|決める|きめる|クラスの ルールを ＿
+研|研究所|けんきゅうじょ|大学の ＿
+県|県|けん|となりの ＿
+庫|車庫|しゃこ|車を ＿に 入れる
+湖|湖|みずうみ|大きな ＿
+向|向かう|むかう|駅に ＿
+幸|幸せ|しあわせ|＿な 気もち
+港|港|みなと|船が ＿に 着く
+号|番号|ばんごう|名前の ＿を よぶ
+根|根|ね|木の ＿
+祭|祭り|まつり|夏の ＿
+皿|皿|さら|＿を あらう
+仕|仕事|しごと|父の ＿
+死|死ぬ|しぬ|虫も いつかは ＿
+使|使う|つかう|はさみを ＿
+始|始まる|はじまる|じゅぎょうが ＿
+指|指|ゆび|＿で 数える
+歯|歯|は|＿を みがく
+詩|詩|し|＿を 読む
+次|次|つぎ|＿の 駅
+事|火事|かじ|＿に 気を つける
+持|持つ|もつ|かさを ＿
+式|入学式|にゅうがくしき|＿に 出る
+実|実|み|木の ＿が なる
+写|写真|しゃしん|＿を とる
+者|作者|さくしゃ|この 本の ＿
+主|主人公|しゅじんこう|物語の ＿
+守|守る|まもる|やくそくを ＿
+取|取る|とる|ボールを ＿
+酒|お酒|おさけ|＿を 飲まない
+受|受ける|うける|テストを ＿
+州|九州|きゅうしゅう|＿に 旅行する
+拾|拾う|ひろう|ごみを ＿
+終|終わる|おわる|じゅぎょうが ＿
+習|習う|ならう|ピアノを ＿
+集|集める|あつめる|切手を ＿
+住|住む|すむ|この 町に ＿
+重|重い|おもい|＿ 石
+宿|宿題|しゅくだい|＿を する
+所|場所|ばしょ|集まる ＿
+暑|暑い|あつい|夏は ＿
+助|助ける|たすける|友だちを ＿
+昭|昭和|しょうわ|＿の 時代
+消|消す|けす|火を ＿
+商|商店|しょうてん|町の ＿
+章|文章|ぶんしょう|＿を 書く
+勝|勝つ|かつ|しあいに ＿
+乗|乗る|のる|バスに ＿
+植|植える|うえる|花の なえを ＿
+申|申します|もうします|山田と ＿
+身|身長|しんちょう|＿を はかる
+神|神社|じんじゃ|＿に おまいりする
+真|真ん中|まんなか|道の ＿
+深|深い|ふかい|＿ 海
+進|進む|すすむ|前に ＿
+世|世の中|よのなか|＿の できごと
+整|整理|せいり|つくえの 中を ＿する
+昔|昔|むかし|＿の 話
+全|全部|ぜんぶ|＿ 食べた
+相|相手|あいて|しあいの ＿
+送|送る|おくる|手紙を ＿
+想|想ぞう|そうぞう|しょうらいを ＿する
+息|息|いき|大きく ＿を すう
+速|速い|はやい|走るのが ＿
+族|家族|かぞく|＿で 出かける
+他|他|ほか|＿の 人
+打|打つ|うつ|ボールを ＿
+対|反対|はんたい|その 考えに ＿する
+待|待つ|まつ|バスを ＿
+代|時代|じだい|むかしの ＿
+第|第一|だいいち|安全＿
+題|問題|もんだい|算数の ＿
+炭|炭|すみ|＿で 肉を やく
+短|短い|みじかい|＿ えんぴつ
+談|相談|そうだん|先生に ＿する
+着|着る|きる|服を ＿
+注|注意|ちゅうい|車に ＿する
+柱|柱|はしら|家の ＿
+丁|丁目|ちょうめ|一＿に 住む
+帳|手帳|てちょう|予定を ＿に 書く
+調|調べる|しらべる|図書館で ＿
+追|追いかける|おいかける|ねこを ＿
+定|予定|よてい|明日の ＿
+庭|庭|にわ|＿の 木
+笛|笛|ふえ|＿を ふく
+鉄|鉄ぼう|てつぼう|＿で さか上がり
+転|転ぶ|ころぶ|走って ＿
+都|都会|とかい|＿で くらす
+度|今度|こんど|＿ 遊ぼう
+投|投げる|なげる|ボールを ＿
+豆|豆|まめ|＿まきを する
+島|島|しま|南の ＿
+湯|お湯|おゆ|＿を わかす
+登|登る|のぼる|山に ＿
+等|一等|いっとう|かけっこで ＿
+動|動く|うごく|時計の はりが ＿
+童|童話|どうわ|＿を 読む
+農|農家|のうか|＿の 人
+波|波|なみ|海の ＿
+配|心配|しんぱい|母が ＿する
+倍|二倍|にばい|＿に なる
+箱|箱|はこ|＿に 入れる
+畑|畑|はたけ|＿で 野さいを 作る
+発|出発|しゅっぱつ|バスが ＿する
+反|反対|はんたい|右と 左は ＿
+坂|坂道|さかみち|＿を 上る
+板|黒板|こくばん|＿に 書く
+皮|皮|かわ|みかんの ＿
+悲|悲しい|かなしい|＿ 話
+美|美しい|うつくしい|＿ 花
+鼻|鼻|はな|ぞうの 長い ＿
+筆|筆|ふで|＿で 字を 書く
+氷|氷|こおり|＿が とける
+表|表|ひょう|九九の ＿
+秒|秒|びょう|十＿ 数える
+病|病気|びょうき|＿が なおる
+品|作品|さくひん|図工の ＿
+負|負ける|まける|しあいに ＿
+部|部屋|へや|自分の ＿
+服|服|ふく|＿を たたむ
+福|福|ふく|わらう 門には ＿ 来る
+物|動物|どうぶつ|森の ＿
+平|平ら|たいら|＿な 道
+返|返す|かえす|本を ＿
+勉|勉強|べんきょう|毎日 ＿する
+放|放す|はなす|魚を 川に ＿
+味|味|あじ|あまい ＿
+命|命|いのち|＿を 大切に する
+面|地面|じめん|＿に すわる
+問|問い|とい|次の ＿に 答える
+役|役|やく|げきの ＿
+薬|薬|くすり|＿を 飲む
+由|自由|じゆう|＿に 遊ぶ
+油|油|あぶら|＿で あげる
+有|有名|ゆうめい|＿な 人
+遊|遊ぶ|あそぶ|公園で ＿
+予|予習|よしゅう|明日の ＿を する
+羊|羊|ひつじ|＿の 毛
+洋|洋服|ようふく|新しい ＿
+葉|葉|は|木の ＿が 落ちる
+陽|太陽|たいよう|＿が しずむ
+様|様子|ようす|クラスの ＿
+落|落とす|おとす|さいふを ＿
+流|流れる|ながれる|川が ＿
+旅|旅行|りょこう|家族で ＿する
+両|両手|りょうて|＿を 上げる
+緑|緑|みどり|＿の 葉
+礼|お礼|おれい|＿を 言う
+列|列|れつ|一＿に ならぶ
+練|練習|れんしゅう|ピアノの ＿
+路|道路|どうろ|＿を わたる
+和|和室|わしつ|＿で ねる`;
+
+const G4 = `
+愛|愛|あい|家族の ＿
+案|案内|あんない|町を ＿する
+以|以上|いじょう|十人＿ 集まった
+衣|衣服|いふく|＿を 整える
+位|位|くらい|百の ＿の 数
+茨|茨城県|いばらきけん|＿の なっとう
+印|目印|めじるし|木に ＿を つける
+英|英語|えいご|＿を 習う
+栄|栄える|さかえる|港町が ＿
+媛|愛媛県|えひめけん|＿の みかん
+塩|塩|しお|＿で 味を つける
+岡|静岡県|しずおかけん|＿の お茶
+億|一億|いちおく|＿人
+加|加える|くわえる|さとうを ＿
+果|果物|くだもの|すきな ＿
+貨|貨物|かもつ|＿列車
+課|放課後|ほうかご|＿に 遊ぶ
+芽|芽|め|たねから ＿が 出る
+賀|年賀はがき|ねんがはがき|＿を 書く
+改|改札|かいさつ|駅の ＿を 通る
+械|機械|きかい|工場の ＿
+害|公害|こうがい|＿を なくす
+街|商店街|しょうてんがい|＿で 買い物を する
+各|各地|かくち|全国＿の 天気
+覚|覚える|おぼえる|漢字を ＿
+潟|新潟県|にいがたけん|＿の お米
+完|完成|かんせい|作品が ＿する
+官|器官|きかん|体の ＿
+管|水道管|すいどうかん|＿が こおる
+関|関係|かんけい|二人の ＿
+観|観察|かんさつ|あさがおを ＿する
+願|願う|ねがう|平和を ＿
+岐|岐阜県|ぎふけん|＿の 長良川
+希|希望|きぼう|＿を もつ
+季|季節|きせつ|すきな ＿
+旗|旗|はた|＿を ふる
+器|楽器|がっき|＿を えんそうする
+機|飛行機|ひこうき|＿に 乗る
+議|会議|かいぎ|クラスの ＿
+求|求める|もとめる|助けを ＿
+泣|泣く|なく|赤ちゃんが ＿
+給|給食|きゅうしょく|＿の 時間
+挙|選挙|せんきょ|市長を えらぶ ＿
+漁|漁船|ぎょせん|＿が 港に もどる
+共|共通|きょうつう|二人に ＿の しゅみ
+協|協力|きょうりょく|みんなで ＿する
+鏡|鏡|かがみ|＿を 見る
+競|競走|きょうそう|百メートル＿
+極|南極|なんきょく|＿の ペンギン
+熊|熊本県|くまもとけん|＿に ある 大きな 火山
+訓|訓練|くんれん|ひなん＿
+軍|軍手|ぐんて|＿を はめる
+郡|郡|ぐん|県の 中の ＿
+群|群れ|むれ|鳥の ＿
+径|半径|はんけい|円の ＿
+景|景色|けしき|山の ＿
+芸|園芸|えんげい|＿を 楽しむ
+欠|欠席|けっせき|かぜで ＿する
+結|結ぶ|むすぶ|ひもを ＿
+建|建てる|たてる|家を ＿
+健|健康|けんこう|＿に 気を つける
+験|実験|じっけん|理科の ＿
+固|固い|かたい|＿ もち
+功|成功|せいこう|実験が ＿する
+好|好き|すき|＿な 食べ物
+香|香川県|かがわけん|＿の うどん
+候|天候|てんこう|＿が 悪い
+康|健康|けんこう|毎朝 走って ＿に なる
+佐|佐賀県|さがけん|＿の 焼き物
+差|差|さ|二つの 数の ＿
+菜|野菜|やさい|＿を 食べる
+最|最後|さいご|＿まで 走る
+埼|埼玉県|さいたまけん|＿に 住む
+材|材料|ざいりょう|カレーの ＿
+崎|長崎県|ながさきけん|＿の 港
+昨|昨日|きのう|＿の 夜
+札|名札|なふだ|むねに ＿を つける
+刷|印刷|いんさつ|プリントを ＿する
+察|観察|かんさつ|星を ＿する
+参|参加|さんか|大会に ＿する
+産|産む|うむ|にわとりが たまごを ＿
+散|散歩|さんぽ|犬と ＿する
+残|残る|のこる|教室に ＿
+氏|氏名|しめい|＿を 書く
+司|司会|しかい|会の ＿を する
+試|試合|しあい|サッカーの ＿
+児|児童|じどう|＿会の 集まり
+治|治る|なおる|けがが ＿
+滋|滋賀県|しがけん|＿の びわ湖
+辞|辞書|じしょ|＿を 引く
+鹿|鹿|しか|奈良公園の ＿
+失|失う|うしなう|自信を ＿
+借|借りる|かりる|本を ＿
+種|種|たね|ひまわりの ＿
+周|周り|まわり|池の ＿を 歩く
+祝|祝う|いわう|たんじょう日を ＿
+順|順番|じゅんばん|＿に ならぶ
+初|初めて|はじめて|＿ 会った 人
+松|松|まつ|＿の 木
+笑|笑う|わらう|大きな 声で ＿
+唱|合唱|がっしょう|＿コンクール
+焼|焼く|やく|パンを ＿
+照|照らす|てらす|月が 道を ＿
+城|城|しろ|＿の 石がき
+縄|縄とび|なわとび|＿を する
+臣|大臣|だいじん|国の ＿
+信|信号|しんごう|＿が 青に なる
+井|井戸|いど|＿の 水
+成|成長|せいちょう|大きく ＿する
+省|反省|はんせい|自分の 行動を ＿する
+清|清らか|きよらか|＿な 川の 水
+静|静か|しずか|＿な 図書館
+席|席|せき|自分の ＿に すわる
+積|積む|つむ|つみ木を ＿
+折|折る|おる|紙を ＿
+節|節分|せつぶん|＿の 豆まき
+説|説明|せつめい|道順を ＿する
+浅|浅い|あさい|＿ 川
+戦|作戦|さくせん|＿を 立てる
+選|選ぶ|えらぶ|代表を ＿
+然|自然|しぜん|＿を 守る
+争|争う|あらそう|一位を ＿
+倉|倉庫|そうこ|＿に しまう
+巣|巣|す|鳥の ＿
+束|花束|はなたば|＿を おくる
+側|右側|みぎがわ|道の ＿を 歩く
+続|続く|つづく|雨が ＿
+卒|卒業|そつぎょう|＿式
+孫|孫|まご|おじいさんの ＿
+帯|包帯|ほうたい|足に ＿を まく
+隊|隊列|たいれつ|＿を 組む
+達|友達|ともだち|＿と 遊ぶ
+単|単語|たんご|英語の ＿
+置|置く|おく|本を つくえに ＿
+仲|仲間|なかま|＿に 入れる
+沖|沖縄県|おきなわけん|＿の 海
+兆|一兆|いっちょう|＿円
+低|低い|ひくい|せが ＿
+底|底|そこ|海の ＿
+的|目的|もくてき|旅の ＿
+典|辞典|じてん|国語＿
+伝|伝える|つたえる|気持ちを ＿
+徒|生徒|せいと|中学校の ＿
+努|努力|どりょく|毎日 ＿する
+灯|電灯|でんとう|＿を つける
+働|働く|はたらく|工場で ＿
+特|特別|とくべつ|＿な 日
+徳|徳島県|とくしまけん|＿の あわおどり
+栃|栃木県|とちぎけん|＿の いちご
+奈|奈良県|ならけん|＿の 古い お寺
+梨|梨|なし|＿を むく
+熱|熱い|あつい|＿ お茶
+念|記念|きねん|＿写真
+敗|失敗|しっぱい|＿を おそれない
+梅|梅|うめ|＿の 花
+博|博物館|はくぶつかん|＿を 見学する
+阪|大阪府|おおさかふ|＿の たこやき
+飯|ご飯|ごはん|＿を 食べる
+飛|飛ぶ|とぶ|鳥が 空を ＿
+必|必ず|かならず|＿ 行きます
+票|投票|とうひょう|学級委員の ＿
+標|目標|もくひょう|今年の ＿
+不|不安|ふあん|明日の テストが ＿だ
+夫|工夫|くふう|作り方を ＿する
+付|付ける|つける|名前を ＿
+府|京都府|きょうとふ|＿の お寺
+阜|岐阜県|ぎふけん|＿の 山と 川
+富|富山県|とやまけん|＿の 海
+副|副会長|ふくかいちょう|児童会の ＿
+兵|兵隊|へいたい|おもちゃの ＿
+別|別れる|わかれる|駅で 友達と ＿
+辺|辺り|あたり|この ＿に 住む
+変|変わる|かわる|天気が ＿
+便|便利|べんり|＿な 道具
+包|包む|つつむ|プレゼントを ＿
+法|方法|ほうほう|いい ＿を 考える
+望|望遠鏡|ぼうえんきょう|＿で 星を 見る
+牧|牧場|ぼくじょう|＿の 牛
+末|週末|しゅうまつ|＿に 出かける
+満|満月|まんげつ|今夜は ＿
+未|未来|みらい|＿の 町
+民|市民|しみん|＿プール
+無|無理|むり|それは ＿だ
+約|約束|やくそく|＿を 守る
+勇|勇気|ゆうき|＿を 出す
+要|必要|ひつよう|かさが ＿だ
+養|栄養|えいよう|＿の ある 食事
+浴|浴びる|あびる|シャワーを ＿
+利|利用|りよう|図書館を ＿する
+陸|陸上|りくじょう|＿の 大会
+良|仲良し|なかよし|二人は ＿だ
+料|料理|りょうり|＿を 作る
+量|量|りょう|雨の ＿
+輪|車輪|しゃりん|自転車の ＿
+類|種類|しゅるい|いろいろな ＿の 花
+令|号令|ごうれい|＿を かける
+冷|冷たい|つめたい|＿ 水
+例|例えば|たとえば|＿ りんごや みかん
+連|連れて|つれて|犬を ＿ 歩く
+老|老人|ろうじん|＿ホーム
+労|苦労|くろう|＿して 作る
+録|記録|きろく|＿を 取る`;
+
+/* 1・2年の 漢字（かきの まちがい用に つかう） */
+const LOWER = "一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内南肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門夜野友用曜来里理話";
+
+const parse = t => t.trim().split("\n").map(l=>{const [k,w,y,s]=l.split("|");return {k,w,y,s}});
+const K3 = parse(G3), K4 = parse(G4);
+
+/* にている 漢字（かきの もんだいの まちがい用） */
+const SIM = ["待持特時寺詩等","暑者都","湯陽場","板坂阪飯","福副富","植直置","速連運進遠","暗音意","終紙級絵結給続","昔借","問聞間関開","緑録","清晴静青","練線","園遠","課果菜","倍部","筆書","章早","氷水泳","旅族旗","酒配","薬楽","鉄鏡","箱相想","談話読","港洋","動働重","様横","未末","失矢夫天","径軽","郡群君","官管館","票標","低底","札礼","健建","季委","達幸","治始","漁魚","浅残","積績","鹿塩","英映","観親","議説談","願頭顔","側測","束東","便使","反板","皮波","悲非","洋羊","列例","息自","等待","短知","柱住注主"];
+const simOf = k => { const g = SIM.find(s=>s.includes(k)); return g ? [...g].filter(c=>c!==k) : [] };
+
+const r = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=r(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* よみの まちがえやすい かたち：だくてん・のばす音・小さい っ */
+const DAKU = {か:"が",き:"ぎ",く:"ぐ",け:"げ",こ:"ご",さ:"ざ",し:"じ",す:"ず",せ:"ぜ",そ:"ぞ",た:"だ",ち:"ぢ",つ:"づ",て:"で",と:"ど",は:"ば",ひ:"び",ふ:"ぶ",へ:"べ",ほ:"ぼ"};
+const UNDAKU = Object.fromEntries(Object.entries(DAKU).map(([a,b])=>[b,a]));
+function mutations(y){
+  const out = new Set();
+  [...y].forEach((c,i)=>{
+    if(DAKU[c]) out.add(y.slice(0,i)+DAKU[c]+y.slice(i+1));
+    if(UNDAKU[c]) out.add(y.slice(0,i)+UNDAKU[c]+y.slice(i+1));
+  });
+  if(y.includes("っ")) out.add(y.replace("っ","つ"));
+  if(/[おこそとのほもよろごぞどぼょ]う/.test(y)) out.add(y.replace(/([おこそとのほもよろごぞどぼょ])う/,"$1"));
+  if(y.includes("ゅう")) out.add(y.replace("ゅう","ゅ"));
+  if(y.includes("ゃ")) out.add(y.replace("ゃ","や"));
+  out.delete(y);
+  return [...out];
+}
+
+function readQ(it, pool){
+  const opts = new Set([it.y]);
+  for(const m of shuffle(mutations(it.y))){ if(opts.size>=2) break; opts.add(m) }
+  const others = shuffle(pool.filter(o=>o.k!==it.k && o.y!==it.y));
+  const near = others.filter(o=>o.w.includes(it.k) || Math.abs(o.y.length-it.y.length)<=1);
+  for(const o of [...near, ...others]){ if(opts.size>=4) break; opts.add(o.y) }
+  return {mode:"yomi", it, choices:shuffle([...opts]), ans:it.y};
+}
+function writeQ(it, pool){
+  const allowed = new Set([...pool.map(o=>o.k), ...LOWER, ...(pool===K4?K3.map(o=>o.k):[])]);
+  const opts = new Set([it.w]);
+  for(const c of shuffle(simOf(it.k).filter(c=>allowed.has(c)))){ if(opts.size>=4) break; opts.add(it.w.replace(it.k,c)) }
+  for(const o of shuffle(pool)){ if(opts.size>=4) break; if(o.k!==it.k) opts.add(it.w.replace(it.k,o.k)) }
+  return {mode:"kaki", it, choices:shuffle([...opts]), ans:it.w};
+}
+
+const UNITS = [
+  {group:"3年生の 漢字（200字）"},
+  {id:"3a", title:"3年 その1", list:K3.slice(0,40), pool:K3},
+  {id:"3b", title:"3年 その2", list:K3.slice(40,80), pool:K3},
+  {id:"3c", title:"3年 その3", list:K3.slice(80,120), pool:K3},
+  {id:"3d", title:"3年 その4", list:K3.slice(120,160), pool:K3},
+  {id:"3e", title:"3年 その5", list:K3.slice(160), pool:K3},
+  {id:"3all", title:"3年 ぜんぶ", list:K3, pool:K3},
+];
+
+let s = {};
+const app = document.getElementById("app");
+
+function home(){
+  s = {};
+  app.innerHTML = `
+    <h1>漢字ノート 3年</h1>
+    <p class="lead">「よみ」は 漢字の読み方、「かき」は 正しい 漢字を 選ぶ 問題です。1回 ${TOTAL}問。</p>
+    <div class="units">${UNITS.map(u=>u.group
+      ? `<div class="group">${u.group}</div>`
+      : `<div class="unit"><div class="name"><b>${u.title}</b><small>${u.list.map(i=>i.k).join("")}</small></div>
+           <button class="mode" data-id="${u.id}" data-m="yomi">よみ</button>
+           <button class="mode" data-id="${u.id}" data-m="kaki">かき</button></div>`).join("")}
+    </div>`;
+  app.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.id,b.dataset.m));
+}
+
+function start(id, mode){
+  const u = UNITS.find(x=>x.id===id);
+  const items = shuffle(u.list).slice(0,TOTAL);
+  const qs = items.map(it=> mode==="yomi" ? readQ(it,u.pool) : writeQ(it,u.pool));
+  s = {u, mode, qs, i:0, ok:0, miss:[], locked:false};
+  draw();
+}
+
+function sentence(q){
+  const word = q.mode==="yomi" ? q.it.w : q.it.y;
+  return q.it.s.replace("＿", `<span class="tg">${word}</span>`);
+}
+
+function draw(){
+  const q = s.qs[s.i];
+  app.innerHTML = `
+    <div class="top"><button class="link" id="quit">やめる</button><span>${s.u.title}・${s.mode==="yomi"?"よみ":"かき"}</span><span>${s.i+1} / ${TOTAL}</span></div>
+    <div class="bar"><i style="width:${s.i/TOTAL*100}%"></i></div>
+    <div class="sheet">
+      <p class="ask">${q.mode==="yomi" ? "線の ところの 読み方は？" : "線の ところを 漢字で 書くと？"}</p>
+      <div class="sent">${sentence(q)}</div>
+      <div class="fb" id="fb"></div>
+    </div>
+    <div class="choices">${q.choices.map(c=>`<button class="choice ${q.mode==="kaki"?"big":""}" data-c="${c}">${c}</button>`).join("")}</div>
+    <button class="btn" id="go" disabled>つぎへ</button>`;
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>choose(b));
+  document.getElementById("go").onclick=()=>{ if(s.locked) next() };
+  document.getElementById("quit").onclick=home;
+}
+
+function choose(btn){
+  if(s.locked) return;
+  const q=s.qs[s.i], c=btn.dataset.c, fb=document.getElementById("fb");
+  s.locked=true;
+  app.querySelectorAll(".choice").forEach(b=>{b.disabled=true; if(b.dataset.c===q.ans) b.classList.add("ok")});
+  if(c===q.ans){ s.ok++; fb.className="fb ok"; fb.textContent="正解"; }
+  else { btn.classList.add("ng"); s.miss.push({q, your:c}); fb.className="fb ng"; fb.textContent=`答えは「${q.ans}」`; }
+  const go=document.getElementById("go"); go.disabled=false; go.textContent=s.i+1<TOTAL?"つぎへ":"おわり"; go.focus();
+}
+
+function next(){
+  s.i++; s.locked=false;
+  s.i<TOTAL ? draw() : done();
+}
+
+function done(){
+  const ok=s.ok;
+  const msg = ok===TOTAL ? "全問正解！漢字を よく 覚えているね。"
+    : ok>=7 ? "よくできました。まちがえた 漢字を もう一度 見直そう。"
+    : "最後まで あきらめずに できたね。くり返すと どんどん 覚えられるよ。";
+  app.innerHTML = `
+    <div class="sheet done">
+      <h2>頑張ったね！</h2>
+      <p class="msg">${msg}</p>
+      <p class="score">${ok}<small> / ${TOTAL} 問</small></p>
+    </div>
+    ${s.miss.length?`<div class="sheet">
+      <div class="group" style="margin:0 0 10px">見なおし</div>
+      <ul class="review">${s.miss.map(m=>`<li><span><ruby>${m.q.it.w}<rt>${m.q.it.y}</rt></ruby></span><span class="your">（${m.your}）</span></li>`).join("")}</ul>
+    </div>`:""}
+    <div class="row">
+      <button class="btn" id="again">もう一度 やる</button>
+      <button class="btn ghost" id="back">ほかの 問題を 選ぶ</button>
+    </div>`;
+  const id=s.u.id, mode=s.mode;
+  document.getElementById("again").onclick=()=>start(id,mode);
+  document.getElementById("back").onclick=home;
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && s.qs && s.locked){ e.preventDefault(); next(); }
+});
+
+home();
+</script>
+
+</body>
+</html>

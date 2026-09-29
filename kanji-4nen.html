@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>漢字ノート3・4年</title>
+<title>漢字ノート4年</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <style>
@@ -537,13 +537,6 @@ function writeQ(it, pool){
 }
 
 const UNITS = [
-  {group:"3年生の 漢字（200字）"},
-  {id:"3a", title:"3年 その1", list:K3.slice(0,40), pool:K3},
-  {id:"3b", title:"3年 その2", list:K3.slice(40,80), pool:K3},
-  {id:"3c", title:"3年 その3", list:K3.slice(80,120), pool:K3},
-  {id:"3d", title:"3年 その4", list:K3.slice(120,160), pool:K3},
-  {id:"3e", title:"3年 その5", list:K3.slice(160), pool:K3},
-  {id:"3all", title:"3年 ぜんぶ", list:K3, pool:K3},
   {group:"4年生の 漢字（202字）"},
   {id:"4a", title:"4年 その1", list:K4.slice(0,40), pool:K4},
   {id:"4b", title:"4年 その2", list:K4.slice(40,80), pool:K4},
@@ -551,6 +544,7 @@ const UNITS = [
   {id:"4d", title:"4年 その4", list:K4.slice(120,160), pool:K4},
   {id:"4e", title:"4年 その5", list:K4.slice(160), pool:K4},
   {id:"4all", title:"4年 ぜんぶ", list:K4, pool:K4},
+
 ];
 
 let s = {};
@@ -559,7 +553,7 @@ const app = document.getElementById("app");
 function home(){
   s = {};
   app.innerHTML = `
-    <h1>漢字ノート 3・4年</h1>
+    <h1>漢字ノート 4年</h1>
     <p class="lead">「よみ」は 漢字の読み方、「かき」は 正しい 漢字を 選ぶ 問題です。1回 ${TOTAL}問。</p>
     <div class="units">${UNITS.map(u=>u.group
       ? `<div class="group">${u.group}</div>`
